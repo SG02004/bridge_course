@@ -9,3 +9,6 @@
 .idea/
 .DS_Store
 Thumbs.db
+
+# Ignored directories
+txt files/
