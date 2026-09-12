@@ -1393,3 +1393,232 @@ Assignment 1 Tests:
 | `char` type & `%c` | Q3 | Single quotes for char literals: `'+'` not `"+"` |
 | scanf format spacing | Q3 | Space before `%c` to skip whitespace |
 | Integer output `%d` | Q1, Q2, Q3 | Works for positive and negative integers |
+
+---
+
+## 🧪 Assignment 2 Analysis
+
+📅 **Week 2** | NPTEL Graded Assignment
+
+---
+
+### Question 1 — Alternating Sum of First N Natural Numbers
+
+> **Task:** Read N, compute `1 − 2 + 3 − 4 + 5 − ...± N`
+> **Rule:** Odd numbers are **added**, even numbers are **subtracted**
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int n, i, sum = 0;   // sum initialized to 0 — accumulator
+
+    scanf("%d", &n);     // Read N
+
+    for (i = 1; i <= n; i++) {
+        if (i % 2 == 0)       // Even index → subtract
+            sum = sum - i;
+        else                  // Odd index → add
+            sum = sum + i;
+    }
+
+    printf("%d", sum);   // Print result, no newline
+    return 0;
+}
+```
+
+#### 🔍 Explanation — Line by Line
+| Line | What it does | Why it matters |
+|------|-------------|----------------|
+| `int n, i, sum = 0` | Declares and initializes accumulator | `sum` must start at 0 or result is garbage |
+| `for (i = 1; i <= n; i++)` | Loops from 1 to N inclusive | Starts at 1, not 0 — natural numbers begin at 1 |
+| `if (i % 2 == 0)` | Checks if current number is even | `% 2 == 0` → even; `% 2 != 0` (or `== 1`) → odd |
+| `sum = sum - i` | Subtracts even numbers | e.g., i=2: sum = 0+1−2 = −1 |
+| `sum = sum + i` | Adds odd numbers | e.g., i=1: sum = 0+1 = 1 |
+| `printf("%d", sum)` | Prints final alternating sum | `%d` for integer; no `\n` needed |
+
+#### 🔍 Dry Run — N = 5
+| i | i%2 | Operation | sum |
+|---|-----|-----------|-----|
+| 1 | 1 (odd) | sum = 0 + 1 | 1 |
+| 2 | 0 (even) | sum = 1 − 2 | −1 |
+| 3 | 1 (odd) | sum = −1 + 3 | 2 |
+| 4 | 0 (even) | sum = 2 − 4 | −2 |
+| 5 | 1 (odd) | sum = −2 + 5 | **3** |
+
+**Output: `3`**
+
+> 💡 **Pattern shortcut:** For even N → result = `−N/2`. For odd N → result = `(N+1)/2`. Not needed for coding but useful for verifying dry runs.
+
+#### ❓ NPTEL MCQ Traps
+
+❓ What is the output for N = 1?
+✅ `1`
+💡 Loop runs once: i=1 is odd → sum = 0 + 1 = 1. The condition `i <= n` includes 1.
+
+❓ What is the output for N = 4?
+✅ `−2` → printed as `-2`
+💡 1−2+3−4 = −2. Negative integers print correctly with `%d` — no special handling needed.
+
+❓ What if `sum` is not initialized to 0?
+✅ Garbage value — `sum` starts at whatever was in that memory location.
+💡 Classic NPTEL trap. **Always initialize accumulators.**
+
+❓ What if the condition is `i % 2 == 1` for odd check instead of `else`?
+✅ Same result — `i % 2 == 1` and `else` (after even check) are equivalent for positive integers.
+💡 For negative `i`, `i % 2` can be `-1` in C (not `1`), so `else` is safer. But since i starts at 1 and goes up, both work here.
+
+❓ What if `i` starts at 0 instead of 1?
+✅ i=0 is even → sum = 0 − 0 = 0 (adding 0 harmlessly), then continues. Off-by-one: the loop would include i=N and also i=0 (which is irrelevant), BUT the range shifts — effectively computes `0−1+2−3...` which is wrong.
+💡 Natural numbers start at **1**, not 0. Always `i = 1` here.
+
+#### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `sum` not initialized | Garbage starting value | `int sum = 0` |
+| `i = 0` (starts at 0) | Wrong sequence — 0 included, shifts the alternating sign | `i = 1` |
+| `i < n` instead of `i <= n` | Misses the last number N | `i <= n` |
+| `i % 2 == 1` for odd check (negative risk) | Works here but unsafe generally | Use `else` after even check |
+| `printf("%d\n", sum)` | Extra newline — may not match expected output | `printf("%d", sum)` |
+
+#### Quick Recall
+- Alternating sum: odd → add, even → subtract
+- `i % 2 == 0` → even; `else` → odd
+- Initialize `sum = 0` before loop
+- Loop: `for (i = 1; i <= n; i++)`
+- Pattern: N even → `-(N/2)`; N odd → `(N+1)/2`
+
+---
+
+### Question 2 — Longest Consecutive Sequence of Even Numbers
+
+> **Task:** Read N integers, find the length of the longest run of consecutive even numbers.
+> **Rule:** An odd number **resets** the current streak to 0.
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int N, x;
+    int current = 0, longest = 0;  // current = running streak, longest = best seen
+
+    scanf("%d", &N);                // Read count of integers
+
+    for (int i = 0; i < N; i++) {
+        scanf("%d", &x);            // Read next integer
+
+        if (x % 2 == 0) {          // Even number — extend streak
+            current++;
+            if (current > longest)  // Update best if current beats it
+                longest = current;
+        } else {                    // Odd number — reset streak
+            current = 0;
+        }
+    }
+
+    printf("%d", longest);
+    return 0;
+}
+```
+
+#### 🔍 Explanation — Line by Line
+| Line | What it does | Why it matters |
+|------|-------------|----------------|
+| `current = 0, longest = 0` | Two trackers initialized | `current` = active streak; `longest` = best streak ever |
+| `scanf("%d", &x)` inside loop | Reads one integer per iteration | All N integers must be read even if odd |
+| `x % 2 == 0` | Checks if x is even | Works for negative even numbers too (`-4 % 2 == 0`) |
+| `current++` | Extends the current even streak | Increments by 1 for each consecutive even |
+| `if (current > longest) longest = current` | Updates best | Only updates when current streak exceeds previous best |
+| `current = 0` in else | Resets streak on odd number | The odd number breaks the consecutive even run |
+
+#### 🔍 Dry Run — Input: `7` numbers: `2 4 3 6 8 10 5`
+| i | x | Even? | current | longest |
+|---|---|-------|---------|---------|
+| 0 | 2 | ✅ | 1 | 1 |
+| 1 | 4 | ✅ | 2 | 2 |
+| 2 | 3 | ❌ | 0 | 2 |
+| 3 | 6 | ✅ | 1 | 2 |
+| 4 | 8 | ✅ | 2 | 2 |
+| 5 | 10 | ✅ | 3 | **3** |
+| 6 | 5 | ❌ | 0 | 3 |
+
+**Output: `3`**
+
+#### ❓ NPTEL MCQ Traps
+
+❓ What is the output if all N numbers are odd?
+✅ `0` — `current` never increments, `longest` stays 0.
+💡 Initial `longest = 0` handles the all-odd case correctly.
+
+❓ What is the output if all N numbers are even?
+✅ N — `current` grows to N, `longest` tracks it.
+💡 No resets happen; streak = full length of input.
+
+❓ Why is `longest` updated **inside** the even branch and not after the loop?
+✅ Because we need to update it every time the streak grows — if updated only after the loop, we'd miss streaks that end before the last element.
+💡 Alternatively you could do `longest = (current > longest) ? current : longest` — same effect.
+
+❓ What does `x % 2 == 0` return for `x = -4`?
+✅ `0` (true — `-4 % 2 == 0` in C), so -4 is correctly identified as even.
+💡 The modulo of a negative even number is 0 in C; this works correctly.
+
+❓ What if `longest` is updated only when the streak **breaks** (in the else branch)?
+✅ The last streak (if it ends at the last element) would never be recorded.
+💡 That's why the update `if (current > longest) longest = current` must be inside the **even branch**, not the else.
+
+#### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `longest` updated in `else` only | Streak ending at last element is missed | Update inside even (`if`) branch |
+| Not resetting `current = 0` on odd | Streak carries over past odd numbers | Always reset on odd |
+| `x % 2 == 1` for odd check | Fails for negative odd numbers (`-3 % 2 == -1`) | Use `x % 2 != 0` or just `else` |
+| `longest = current` unconditionally | Overwrites best with smaller value | Only update `if (current > longest)` |
+| Declaring `int i` outside C99 for-loop | Fine in C89; `for (int i=0;...)` requires C99 | Compile with `gcc -std=c99` or declare `i` outside |
+
+#### Quick Recall
+- Two variables: `current` (active streak) + `longest` (best ever)
+- Even → `current++` then check if `current > longest`
+- Odd → `current = 0` (reset)
+- Both initialized to 0 before loop
+- Update `longest` **inside the even branch**, not after the loop
+
+---
+
+### Question 3 — Upper Triangular Matrix Check
+
+> **Task:** Read an N×N matrix. Print `1` if it is upper triangular, `0` otherwise.
+> **Definition:** Upper triangular = all elements **below** the main diagonal are 0. Elements on and above the diagonal can be anything.
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    int matrix[n][n];   // Variable-length array (C99) — size known at runtime
+
+    // Step 1: Read entire matrix
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            scanf("%d", &matrix[i][j]);   // Row-by-row input
+
+    // Step 2: Check only below-diagonal elements (i > j)
+    for (int i = 1; i < n; i++) {         // Start at row 1 (row 0 has nothing below diagonal)
+        for (int j = 0; j < i; j++) {     // Only columns 0 to i-1 (below diagonal)
+            if (matrix[i][j] != 0) {
+                printf("0");              // Found non-zero below diagonal → NOT upper triangular
+                return 0;                // Exit immediately — early termination
+            }
+        }
+    }
+
+    printf("1");    // All below-diagonal elements are 0 → IS upper triangular
+    return 0;
+}
+```
+
+#### 🔍 Visual — What "Below Diagonal" Means (4×4 example)
