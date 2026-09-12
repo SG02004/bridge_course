@@ -19,6 +19,7 @@
 12. [Pythagorean Triples (Multi-variable `continue` Case Study)](#12-pythagorean-triples-multi-variable-continue-case-study)
 13. [`getchar` vs `scanf %c` for Characters](#13-getchar-vs-scanf-c-for-characters)
 14. [The Comma Operator in `for` Loops](#14-the-comma-operator-in-for-loops)
+15. [🧪 Assignment 1 Analysis](#-assignment-1-analysis)
 
 ---
 
@@ -1141,3 +1142,254 @@ int main() {
 - **`1/i`**: integer division = 0 for i > 1; use `1.0/i`
 - **Infinite loop**: `while (1)` — needs `break` or `return` to exit
 - **Flag variable**: 0 = not triggered, 1 = triggered; put in loop condition
+- **`char` vs `int`**: use `%c` and `char` for operators/characters; `%d` and `int` for numbers
+- **`if-else if-else`**: covers all branches; last `else` = default case
+- **Integer overflow**: `volume = l * b * h` — if dimensions are large, result may overflow `int`; use `long` to be safe
+
+---
+
+## 🧪 Assignment 1 Analysis
+
+📅 **Week 1** | NPTEL Graded Assignment
+
+---
+
+### Question 1 — Volume of a Cuboid
+
+> **Task:** Read length, breadth, height of a cuboid → print its volume.
+> **Formula:** `Volume = Length × Breadth × Height`
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int length, breadth, height, volume;
+
+    scanf("%d %d %d", &length, &breadth, &height);  // Read 3 integers
+
+    volume = length * breadth * height;              // Multiply all three
+
+    printf("%d", volume);   // Print WITHOUT newline (as required)
+
+    return 0;
+}
+```
+
+#### 🔍 Explanation — Line by Line
+| Line | What it does | Why it matters |
+|------|-------------|----------------|
+| `int length, breadth, height, volume;` | Declares 4 integer variables | All 4 must be declared before use |
+| `scanf("%d %d %d", &length, &breadth, &height)` | Reads 3 space-separated integers | The `&` is mandatory — passes address to scanf |
+| `volume = length * breadth * height` | Multiplies all three | `*` is the multiplication operator in C |
+| `printf("%d", volume)` | Prints integer, no newline | NPTEL often checks exact output format |
+
+#### ❓ NPTEL MCQ Traps
+
+❓ What happens if you write `printf("%d\n", volume)` instead of `printf("%d", volume)`?
+✅ A newline is printed after the number. NPTEL may or may not penalise this — but match the spec exactly.
+💡 When the problem says "Print the volume" with no mention of newline, use `printf("%d", volume)`.
+
+❓ What is the output if inputs are `2 3 4`?
+✅ `24` (2 × 3 × 4 = 24)
+💡 Straightforward multiplication — no traps here except forgetting `&` in scanf.
+
+❓ What if inputs are `100 200 300`?
+✅ `6000000` — fits in `int` (max ~2.1 billion). But `1000 1000 1000` = 1,000,000,000 — still fits. `2000 2000 2000` = 8,000,000,000 — **overflows int!**
+💡 For very large inputs, use `long int` and `%ld`.
+
+#### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| Missing `&` in scanf: `scanf("%d", length)` | Undefined behaviour / crash | Always use `&` with scanf |
+| Using `+` instead of `*` | Prints sum, not volume | Use `*` for multiplication |
+| `int` overflow for large inputs | Wrong (garbage) answer | Use `long int` for safety |
+| `printf("%f", volume)` | Wrong format specifier for int | Use `%d` for `int` |
+
+#### Quick Recall
+- Volume formula: `l * b * h` (three `*` operators)
+- scanf needs `&` before each variable
+- `%d` for int, `%ld` for long int
+- Check for overflow when inputs could be large
+
+---
+
+### Question 2 — Voter Eligibility
+
+> **Task:** Given current age and election year, check if person will be ≥ 18 in that year.
+> **Formula:** `age_in_election_year = current_age + (election_year - 2026)`
+> **Rule:** Print `Eligible` if ≥ 18, else `Not Eligible`
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int age, year;
+
+    scanf("%d %d", &age, &year);          // Read current age and election year
+
+    // Calculate age in election year and check eligibility
+    if (age + (year - 2026) >= 18)        // Key formula embedded in condition
+        printf("Eligible");
+    else
+        printf("Not Eligible");
+
+    return 0;
+}
+```
+
+#### 🔍 Explanation — Line by Line
+| Line | What it does | Why it matters |
+|------|-------------|----------------|
+| `scanf("%d %d", &age, &year)` | Reads two integers | Current age first, then election year |
+| `age + (year - 2026)` | Projects age to election year | `year - 2026` = years from now |
+| `>= 18` | Checks eligibility threshold | 18 or older = eligible |
+| `printf("Eligible")` | Exact string — case sensitive | Do NOT print `eligible` (lowercase) |
+
+#### 🔍 Dry Run Examples
+| Current Age | Election Year | Age in Election Year | Output |
+|-------------|--------------|----------------------|--------|
+| 16 | 2028 | 16 + (2028−2026) = 18 | `Eligible` |
+| 15 | 2028 | 15 + 2 = 17 | `Not Eligible` |
+| 20 | 2024 | 20 + (2024−2026) = 18 | `Eligible` |
+| 18 | 2026 | 18 + 0 = 18 | `Eligible` |
+| 17 | 2026 | 17 + 0 = 17 | `Not Eligible` |
+
+> ⚠️ Note: `election_year - 2026` can be **negative** if the year is before 2026 — the formula still works correctly in C with negative integers.
+
+#### ❓ NPTEL MCQ Traps
+
+❓ What is the output for age = 16, year = 2028?
+✅ `Eligible` — 16 + (2028 - 2026) = 16 + 2 = 18 ≥ 18
+💡 Exactly 18 satisfies `>= 18`. If the condition were `> 18`, this would print `Not Eligible`.
+
+❓ What if year = 2024 (past year) and age = 20?
+✅ `Eligible` — 20 + (2024 - 2026) = 20 + (−2) = 18 ≥ 18
+💡 Subtraction with negative result is valid C arithmetic.
+
+❓ What if `>=` is changed to `>`?
+✅ A person who will be exactly 18 would get `Not Eligible` — **wrong answer**.
+💡 The threshold is **18 or older** → must use `>=`, never just `>`.
+
+❓ What is the output for age = 17, year = 2026?
+✅ `Not Eligible` — 17 + 0 = 17 < 18
+💡 Current year is 2026, so `year - 2026 = 0` — age doesn't change.
+
+#### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `> 18` instead of `>= 18` | Age exactly 18 is wrongly rejected | Use `>=` |
+| Wrong formula: `age - (year - 2026)` | Subtracts instead of adds | `age + (year - 2026)` |
+| `printf("eligible")` (lowercase) | Wrong output — C is case-sensitive | `printf("Eligible")` |
+| Reading year before age | Logic works but reads wrong values | Read age first, then year (match problem spec) |
+| Hardcoding `2026`: `age + year - 2026` | Correct **only** if current year is 2026 | This is intentional per problem statement |
+
+#### Quick Recall
+- Formula: `age + (year - 2026) >= 18`
+- Use `>=` not `>` for ≥ 18 check
+- Output strings are **case-sensitive**: `Eligible` / `Not Eligible`
+- `year - 2026` can be 0 or negative — C handles negative int arithmetic correctly
+
+---
+
+### Question 3 — Simple Calculator (+, -, *)
+
+> **Task:** Read two integers and an operator (`+`, `-`, or `*`), print the result.
+
+#### ✅ Correct Solution (Cleaned)
+```c
+#include <stdio.h>
+
+int main() {
+    int a, b, result;
+    char op;
+
+    scanf("%d %c %d", &a, &op, &b);   // Read: integer, char operator, integer
+
+    if (op == '+')
+        result = a + b;
+    else if (op == '-')
+        result = a - b;
+    else                               // Only +, -, * guaranteed → safe to use else
+        result = a * b;
+
+    printf("%d", result);
+
+    return 0;
+}
+```
+
+#### 🔍 Explanation — Line by Line
+| Line | What it does | Why it matters |
+|------|-------------|----------------|
+| `char op` | Declares op as a character variable | Operators are single characters, not integers |
+| `scanf("%d %c %d", &a, &op, &b)` | Reads int, char, int with spaces | The space before `%c` skips whitespace automatically |
+| `op == '+'` | Compares char using single quotes | `'+'` is a char literal; `"+"` would be a string — wrong type |
+| Final `else` | Handles `*` without explicit check | Safe because problem guarantees only +, -, * |
+
+#### 🔍 Dry Run Examples
+| Input | a | op | b | Result | Output |
+|-------|---|----|---|--------|--------|
+| `5 + 3` | 5 | `+` | 3 | 5+3 | `8` |
+| `10 - 4` | 10 | `-` | 4 | 10-4 | `6` |
+| `6 * 7` | 6 | `*` | 7 | 6*7 | `42` |
+| `3 - 9` | 3 | `-` | 9 | 3-9 | `-6` |
+
+#### ❓ NPTEL MCQ Traps
+
+❓ Why is `op` declared as `char` and not `int`?
+✅ Because `+`, `-`, `*` are **characters** (single symbols), not integers. `char` stores one character.
+💡 Using `int op` would not work with `scanf("%c", &op)` correctly.
+
+❓ What is wrong with `if (op == "+")`?
+✅ `"+"` is a **string literal** (type `char *`), not a character. Should be `op == '+'` (single quotes).
+💡 Classic NPTEL trap: single quotes `' '` for `char`, double quotes `" "` for strings.
+
+❓ What does `scanf("%d %c %d", &a, &op, &b)` do with input `5 + 3`?
+✅ Reads `a=5`, skips space, reads `op='+'`, skips space, reads `b=3`.
+💡 The space in `"%d %c %d"` before `%c` is critical — without it, `op` may capture the space character `' '` instead of `'+'`.
+
+❓ What if the operator is `/` (division)? What does the program print?
+✅ It falls into the `else` branch and computes `a * b` instead — **wrong answer**.
+💡 The `else` is only safe because the problem guarantees only `+`, `-`, `*`. If division were possible, you'd need `else if (op == '*')` and an explicit `else` for error.
+
+❓ What is the output for `3 - 9`?
+✅ `-6` — negative integers print correctly with `%d`.
+💡 `int` can hold negative values; `%d` prints the sign automatically.
+
+#### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `op == "+"` (double quotes) | Type mismatch: comparing char to char* | `op == '+'` (single quotes) |
+| `int op` instead of `char op` | Cannot store character correctly | Use `char op` |
+| `scanf("%d%c%d")` (no space before `%c`) | `op` captures space `' '` between number and operator | Add space: `"%d %c %d"` |
+| Three separate `if` instead of `if-else if-else` | All three conditions evaluated; last assignment wins | Use `else if` chain |
+| `printf("%c", result)` | Prints ASCII character, not the number | Use `printf("%d", result)` |
+
+#### Quick Recall
+- Operator is a `char` → use `%c` in scanf, single quotes in comparison
+- Always space before `%c` in scanf format string: `"%d %c %d"`
+- `if-else if-else` chain — only one branch executes
+- `else` as final catch is safe **only** when inputs are guaranteed
+- `%d` prints integers (including negatives) correctly
+
+---
+
+## 🗂️ Assignment 1 — Concept Map
+
+```
+Assignment 1 Tests:
+├── Q1: Variables + Arithmetic operators (*) + printf/scanf
+├── Q2: Conditional (if-else) + Formula evaluation + Integer arithmetic
+└── Q3: char type + %c format specifier + if-else if-else chain
+```
+
+| Concept | Tested in | Key thing to remember |
+|---------|-----------|----------------------|
+| `int` declaration & scanf | Q1, Q2, Q3 | `&` before variable name in scanf |
+| Arithmetic `*` operator | Q1 | Not `×` — use `*` in C |
+| `if-else` | Q2, Q3 | Use `>=` for "18 or older"; `else if` for chains |
+| `char` type & `%c` | Q3 | Single quotes for char literals: `'+'` not `"+"` |
+| scanf format spacing | Q3 | Space before `%c` to skip whitespace |
+| Integer output `%d` | Q1, Q2, Q3 | Works for positive and negative integers |
