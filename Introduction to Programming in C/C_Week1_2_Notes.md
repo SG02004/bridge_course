@@ -19,7 +19,18 @@
 12. [Pythagorean Triples (Multi-variable `continue` Case Study)](#12-pythagorean-triples-multi-variable-continue-case-study)
 13. [`getchar` vs `scanf %c` for Characters](#13-getchar-vs-scanf-c-for-characters)
 14. [The Comma Operator in `for` Loops](#14-the-comma-operator-in-for-loops)
-15. [🧪 Assignment 1 Analysis](#-assignment-1-analysis)
+15. [`if` and `if-else` Statements](#15-if-and-if-else-statements)
+16. [Operators — Modulo, Logical AND/OR/NOT, Leap Year](#16-operators--modulo-logical-andornot-leap-year)
+17. [Variables & Data Types — `int`, `float`, Format Specifiers](#17-variables--data-types--int-float-format-specifiers)
+18. [Tracing Programs — `printf`, `\n`, Comments](#18-tracing-programs--printf-n-comments)
+19. [`while` Loop — Structure, Sentinel Pattern, Priming Read](#19-while-loop--structure-sentinel-pattern-priming-read)
+20. [Loop Invariants](#20-loop-invariants)
+21. [`do-while` Loop](#21-do-while-loop)
+22. [Longest Contiguous Increasing Subsequence (LCIS)](#22-longest-contiguous-increasing-subsequence-lcis)
+23. [GCD with `while` Loop — Full Implementation & Loop Invariant](#23-gcd-with-while-loop--full-implementation--loop-invariant)
+24. [Matrix Row-Sum-Squared Problem](#24-matrix-row-sum-squared-problem-nested-while-loops)
+25. [🧪 Assignment 1 Analysis](#-assignment-1-analysis)
+26. [🧪 Assignment 2 Analysis](#-assignment-2-analysis)
 
 ---
 
@@ -1101,136 +1112,1066 @@ int main() {
 
 ---
 
-## 🗂️ Master Comparison Table: `break` vs `continue`
+---
 
-| Feature | `break` | `continue` |
-|---------|---------|------------|
-| Effect | Exits **innermost loop** entirely | Skips rest of **current iteration** |
-| In `for` loop | Skips **update + test** | Runs **update**, then **test** |
-| In `while` loop | Exits immediately | Goes to **test** |
-| Exits `if` statement? | ❌ No | ❌ No |
-| Necessary? | No — replaceable by flag variable | No — replaceable by nested `if` |
-| Execution after statement | First statement after the loop | Next iteration (if test passes) |
+## 15. `if` and `if-else` Statements
+
+📅 **Week 1**
+
+### Concept Summary
+The `if` statement executes a block only when a condition is true. The `if-else` adds an alternative branch for when the condition is false. In C, `0` = false and **any non-zero value = true**. `if-else` chains (`else if`) test multiple conditions in sequence — only the **first true branch** executes.
+
+### Key Syntax / Rules Box
+```c
+// Simple if
+if (condition)
+    statement;          // No braces needed for single statement
+
+// if-else
+if (condition)
+    statement_true;
+else
+    statement_false;
+
+// if-else if-else chain
+if (condition1)
+    statement1;
+else if (condition2)
+    statement2;
+else
+    statement_default;
+```
+- Condition evaluates to **int**: 0 = false, non-zero = true
+- `else` always binds to the **nearest preceding unmatched `if`**
+- Braces `{}` optional for single statements; **always use braces** for clarity
+- `=` inside condition is a common bug: `if (a = 5)` always true
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int a;
+    scanf("%d", &a);
+
+    if (a % 6 == 0)                         // Divisible by 6?
+        printf("%d is divisible by 6\n", a);
+    else if (a % 3 == 0)                    // Else: divisible by 3?
+        printf("%d is divisible by 3 only\n", a);
+    else if (a % 2 == 0)                    // Else: divisible by 2?
+        printf("%d is divisible by 2 only\n", a);
+    else
+        printf("%d is not divisible by 2 or 3\n", a);
+
+    return 0;
+}
+```
+
+**What would NPTEL ask about this?**
+
+❓ For `a = 12`, which branch executes?
+✅ The first: `12 % 6 == 0` → prints "divisible by 6". The other branches are skipped.
+💡 In an `else if` chain, only the **first true** condition executes. Even though 12 is also divisible by 3 and 2, those branches are never reached.
+
+❓ What is the output for `a = 9`?
+✅ "9 is divisible by 3 only" — `9 % 6 = 3 ≠ 0`, but `9 % 3 = 0`.
+💡 The `else if` is only checked when the `if` above it is false.
+
+❓ What is the difference between `if (a = 5)` and `if (a == 5)`?
+✅ `a = 5` assigns 5 to a (always true since 5 ≠ 0). `a == 5` tests if a equals 5.
+💡 Classic `=` vs `==` trap — one of the most common C bugs.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `if (a = 5)` | Assignment; always true | `if (a == 5)` |
+| `if (a == 5);` (semicolon after condition) | Empty if body; next line always runs | Remove the `;` |
+| `else` without preceding `if` | Compile error | Match every `else` to an `if` |
+| Testing float equality: `if (f == 3.14)` | Unreliable due to float precision | Use range: `if (f > 3.13 && f < 3.15)` |
+
+### Quick Recall
+- `0` = false, non-zero = true in C
+- `else` binds to nearest unmatched `if`
+- `else if` chains: only first true branch runs
+- `=` assigns; `==` compares — never mix them in conditions
 
 ---
 
-## 🗂️ Loop Selection Guide
+## 16. Operators — Modulo, Logical AND/OR/NOT, Leap Year
 
-| Situation | Preferred Loop |
-|-----------|---------------|
-| Number of iterations known in advance (matrix, sum 1 to n) | `for` |
-| Iterations depend on input/condition (GCD, sentinel) | `while` |
-| Body must execute at least once | `do-while` |
-| Multiple exit conditions needed | `for` with flag OR `while (1)` with `break` |
+📅 **Week 1**
+
+### Concept Summary
+The **modulo operator `%`** gives the remainder of integer division — the primary tool for divisibility checks. **Logical operators** (`&&`, `||`, `!`) combine or negate boolean conditions, enabling complex decision-making in a single `if` statement. **Short-circuit evaluation** means the second operand is skipped when the result is already determined.
+
+### Key Syntax / Rules Box
+```c
+a % b       // Remainder when a is divided by b; result = 0 means a divisible by b
+&&          // Logical AND: true only if BOTH operands are non-zero
+||          // Logical OR: true if AT LEAST ONE operand is non-zero
+!           // Logical NOT (unary): flips truth value; !0 = 1, !non-zero = 0
+```
+- All logical operators return **int**: `1` (true) or `0` (false)
+- `&&` short-circuits: if left is `0`, right is **not evaluated**
+- `||` short-circuits: if left is non-zero, right is **not evaluated**
+- `!` is **unary** (one operand); `&&` and `||` are **binary** (two operands)
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int year;
+    scanf("%d", &year);
+
+    // Leap year: divisible by 4 AND (not by 100 OR divisible by 400)
+    if ((year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)))
+        printf("%d is a leap year.\n", year);
+    else
+        printf("%d is not a leap year.\n", year);
+
+    return 0;
+}
+```
+
+**Leap Year Logic Breakdown:**
+| Condition | Meaning |
+|-----------|---------|
+| `year % 4 == 0` | Must be divisible by 4 |
+| `year % 100 != 0` | But NOT by 100 |
+| `year % 400 == 0` | UNLESS also divisible by 400 |
+
+**Dry Run:**
+| Year | %4 | %100 | %400 | Leap? |
+|------|----|------|------|-------|
+| 2000 | 0 | 0 | 0 | ✅ Yes (400) |
+| 1900 | 0 | 0 | ≠0 | ❌ No (100, not 400) |
+| 2024 | 0 | ≠0 | ≠0 | ✅ Yes (4, not 100) |
+| 2023 | ≠0 | — | — | ❌ No |
+
+**What would NPTEL ask about this?**
+
+❓ What does `!` do in `if (!(a % 3 == 0))`?
+✅ Negates: checks if a is **not** divisible by 3. Same as `a % 3 != 0`.
+💡 `!(a % 3 == 0)` → `!true` → `false` when divisible. Equivalent to `a % 3 != 0`.
+
+❓ In `if (a && b)`, if `a = 0`, is `b` evaluated?
+✅ No — short-circuit: `0 && anything = 0`, so `b` is never evaluated.
+💡 Prevents side-effects and potential errors from evaluating `b` unnecessarily.
+
+❓ What is `5 % 3`? What is `3 % 5`?
+✅ `5 % 3 = 2`; `3 % 5 = 3` (when dividend < divisor, remainder = dividend)
+💡 `a % b = a` when `a < b`.
+
+❓ What is `!(0)` and `!(5)`?
+✅ `!(0) = 1`; `!(5) = 0`. NOT flips 0↔non-zero.
+💡 `!` always returns exactly `0` or `1`, never the original value.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `&` instead of `&&` | Bitwise AND, not logical | Use `&&` for logical conditions |
+| `\|` instead of `\|\|` | Bitwise OR, not logical | Use `\|\|` for logical conditions |
+| `!(a % 3)` without `== 0` | Works: `a%3=0` → `!0=1` (true). But obscure | Prefer explicit: `a % 3 == 0` |
+| Forgetting parentheses in leap year | Wrong precedence | Always parenthesize complex conditions |
+
+### Quick Recall
+- `a % b == 0` → b divides a exactly
+- `&&` = AND (both must be true); `||` = OR (either must be true); `!` = NOT
+- Short-circuit: `&&` stops at first false; `||` stops at first true
+- Leap year: `(% 4 == 0) && ((% 100 != 0) || (% 400 == 0))`
+- All logical results are `0` or `1` (int)
 
 ---
 
-## ⚡ Ultimate Quick Recall Sheet (Exam Day)
+## 17. Variables & Data Types — `int`, `float`, Format Specifiers
 
-- **`=` vs `==`**: assign vs compare — the #1 C bug
-- **`break` in `for`**: update does NOT run
-- **`continue` in `for`**: update DOES run
-- **`break` + `if`**: `break` exits the **loop**, not the `if`
-- **`scanf` return**: number of items read; 0 = failure, -1 = EOF
-- **Swap**: always needs 3 steps + temp (`t = a; a = b; b = t;`)
-- **GCD stops**: when `b == 0`; answer is `a`
-- **Trace diagonal**: `i == j` (0-indexed)
-- **Blank line**: two consecutive `'\n'` characters
-- **`getchar`**: reads whitespace; `scanf("%d")` skips whitespace
-- **Init accumulators**: `sum = 0`, `max = 0`, `trace = 0` — never leave them uninitialized
-- **Nested loops**: reset inner accumulators **inside** outer loop
-- **`1/i`**: integer division = 0 for i > 1; use `1.0/i`
-- **Infinite loop**: `while (1)` — needs `break` or `return` to exit
-- **Flag variable**: 0 = not triggered, 1 = triggered; put in loop condition
-- **`char` vs `int`**: use `%c` and `char` for operators/characters; `%d` and `int` for numbers
-- **`if-else if-else`**: covers all branches; last `else` = default case
-- **Integer overflow**: `volume = l * b * h` — if dimensions are large, result may overflow `int`; use `long` to be safe
+📅 **Week 1**
+
+### Concept Summary
+Every variable in C must be **declared** with a type before use. **`int`** stores whole numbers; **`float`** stores real (decimal) numbers with finite precision. The **assignment operator `=`** copies the right-hand value into the left-hand variable — it is NOT mathematical equality. Format specifiers (`%d`, `%f`) tell `printf`/`scanf` how to interpret data.
+
+### Key Syntax / Rules Box
+```c
+int a;              // Integer: whole numbers (no decimal)
+float b;            // Float: real numbers (decimal, limited precision)
+
+a = 10;             // Assignment: store 10 in a
+b = 3.14;           // Store 3.14 in b
+
+printf("%d", a);    // %d prints int
+printf("%f", b);    // %f prints float (default 6 decimal places)
+scanf("%d", &a);    // Read int from input
+scanf("%f", &b);    // Read float from input
+```
+- Variable names: letters, digits, `_` only; **cannot start with a digit**
+- C is **case-sensitive**: `Temp` ≠ `temp` ≠ `TEMP`
+- `float` is a **machine approximation** of real numbers — limited precision
+- Format specifiers: `%d` (int), `%f` (float), `%lf` (double in scanf), `%c` (char)
+
+### Detailed Code Example — Celsius to Fahrenheit
+```c
+#include <stdio.h>
+int main() {
+    float centigrade;    // Box for real number (Celsius input)
+    float fahrenheit;    // Box for result
+
+    centigrade = 50;     // Store 50 (converted to 50.0 since type is float)
+
+    // Formula: F = 9*C/5 + 32
+    // Must write 9*centigrade explicitly — C doesn't infer multiplication
+    fahrenheit = 9 * centigrade / 5 + 32;
+
+    printf("%f Celsius = %f Fahrenheit\n", centigrade, fahrenheit);
+    // Output: 50.000000 Celsius = 122.000000 Fahrenheit
+    return 0;
+}
+```
+
+**What would NPTEL ask about this?**
+
+❓ What does `int b = 3; int a = 2; a = b;` leave in `a` and `b`?
+✅ Both `a = 3`, `b = 3`. Assignment copies the value — `b` is unchanged.
+💡 `a = b` means "copy b's value into a". If b changes later, a does NOT change automatically.
+
+❓ What is the output of `printf("%d", 3.14)`?
+✅ Undefined behaviour — `%d` expects an int, but 3.14 is a float. Garbage output.
+💡 Always match format specifier to variable type.
+
+❓ Why is `float` used instead of `int` for temperature conversion?
+✅ Because `9/5 = 1` (integer division), losing the `.8`. Float preserves the decimal: `9.0/5 = 1.8`.
+💡 `9 * 50 / 5 = 450 / 5 = 90` (int math, correct here), but `7 / 2 = 3` not 3.5 — use `float` for accuracy.
+
+❓ What does `centigrade = 50;` actually store since `centigrade` is `float`?
+✅ `50.000000` — the integer 50 is automatically converted to float `50.0`.
+💡 C performs implicit type conversion when assigning int to float.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `int a; printf("%f", a)` | Wrong format; garbage output | Match type: `float a; printf("%f", a)` |
+| `float f; scanf("%d", &f)` | Wrong specifier; garbage value | Use `scanf("%f", &f)` |
+| Variable name starting with digit: `1count` | Compile error | `count1` or `count` |
+| `CENTIGRADE` when declared as `centigrade` | Undeclared variable error | Exact case must match |
+| `fahrenheit = 9/5 * c + 32` | `9/5 = 1` (int division) | `fahrenheit = 9.0/5 * c + 32` |
+
+### Quick Recall
+- `int` = whole numbers; `float` = decimal numbers
+- `=` in C is assignment (copy), NOT mathematical equality
+- `%d` → int, `%f` → float, `%c` → char, `%lf` → double (scanf)
+- Variable names: case-sensitive, no starting digit, only letters/digits/underscore
+- `float` has limited precision — approximation of real numbers
 
 ---
 
-## 🧪 Assignment 1 Analysis
+## 18. Tracing Programs — `printf`, `\n`, Comments
+
+📅 **Week 1**
+
+### Concept Summary
+**Tracing** means following a program's execution line-by-line, tracking what each statement does. Statements execute **top to bottom** sequentially. `printf` outputs to terminal. The **newline character `\n`** moves output to the next line. **Comments** (`/* ... */` or `//`) are ignored by the compiler but vital for readability.
+
+### Key Syntax / Rules Box
+```c
+/* Multi-line comment — ignored by compiler */
+// Single-line comment (C99+)
+
+printf("hello");          // Prints: hello (cursor stays on same line)
+printf("hello\n");        // Prints: hello (cursor moves to next line)
+printf("a\nb\nc\n");      // Prints:
+                          //   a
+                          //   b
+                          //   c
+```
+- `\n` = **newline** (backslash + n = ONE character, ASCII 10)
+- `\n` vs `/n`: backslash `\`, NOT forward slash `/`
+- Two consecutive `printf` statements print on the **same line** by default
+- `#include <stdio.h>` must be present for `printf` to work
+- `/* */` comments can span multiple lines; `//` comments end at line break
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+
+/* This is a simple C program demonstrating printf and \n */
+int main() {
+    printf("welcome to");          // No \n → stays on same line
+    printf("C programming");       // Prints right after "welcome to"
+    // Output: welcome toC programming  (no space between!)
+
+    printf("\n");                  // Moves to new line
+
+    printf("Line 1\n");            // Prints then newline
+    printf("Line 2\n");            // Prints on new line
+    // Output:
+    // Line 1
+    // Line 2
+
+    printf("A\n\nB\n");           // Double \n creates blank line
+    // Output:
+    // A
+    //          ← blank line
+    // B
+
+    return 0;
+}
+```
+
+**What would NPTEL ask about this?**
+
+❓ What is the output of `printf("welcome to"); printf("C programming");`?
+✅ `welcome toC programming` — all on one line, no space.
+💡 `printf` does NOT add spaces or newlines automatically between calls.
+
+❓ How many characters is `\n`?
+✅ **One** — it's a single special character (escape sequence), despite being written as two letters.
+💡 `\n` = newline; `\t` = tab; `\\` = backslash. All count as one character each.
+
+❓ What does `printf("A\n\nB\n")` output?
+✅ `A`, blank line, `B`, then cursor to next line.
+💡 The two `\n\n` creates one newline (end of A's line) plus one blank line.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `/n` instead of `\n` | Prints `/n` literally — no newline | Use backslash `\n` |
+| Unclosed `"` in printf | Compile error | Close all string literals |
+| Forgetting `;` after printf | Compile error | Every statement ends with `;` |
+| Comment inside string: `printf("/* hi */")` | Prints `/* hi */` literally | Comments outside strings only |
+
+### Quick Recall
+- Statements execute **top to bottom**, one at a time
+- `printf` keeps cursor on same line unless `\n` is included
+- `\n` = newline (one character, backslash-n)
+- Comments: `/* ... */` (multi-line) or `//` (single-line, C99+)
+- Compiler **ignores** comments — they are for humans only
+
+---
+
+## 19. `while` Loop — Structure, Sentinel Pattern, Priming Read
+
+📅 **Week 2**
+
+### Concept Summary
+The `while` loop executes its body **as long as the condition is true** (non-zero). Unlike `for`, it is preferred when the number of iterations is **not known in advance** — e.g., reading until a sentinel value. A **priming read** (reading one value before the loop) is a common idiom: it gives the condition something to test on the first check.
+
+### Key Syntax / Rules Box
+```c
+while (expression) {
+    // body — executes as long as expression is non-zero
+}
+// Flowchart: test → (true) body → test → ... → (false) exit
+```
+- `expression` is evaluated **before** each iteration (including the first)
+- If expression is false from the start → body **never executes**
+- Something inside the body must eventually make expression false → avoid infinite loops
+- Non-zero = true; zero = false (C convention)
+- `while` vs `if`: `while` loops back to test; `if` does not
+
+### Detailed Code Example — Sum Until Sentinel
+```c
+#include <stdio.h>
+int main() {
+    int a, s;
+
+    s = 0;              // Initialize sum BEFORE the loop
+    scanf("%d", &a);    // PRIMING READ: read first number before loop
+
+    while (a != -1) {   // Test: continue until sentinel -1
+        s = s + a;      // Add current number to sum
+        scanf("%d", &a);// Read NEXT number (updates condition variable!)
+    }
+    // Loop exits: a == -1, but -1 is NOT added to sum
+    printf("Sum = %d\n", s);
+    return 0;
+}
+// Input: 4 15 -5 -1  →  Output: Sum = 14
+```
+
+**Trace for input `4, 15, -5, -1`:**
+| State | a | s | Condition |
+|-------|---|---|-----------|
+| After priming read | 4 | 0 | 4 ≠ -1 → enter |
+| After iteration 1 | 15 | 4 | 15 ≠ -1 → enter |
+| After iteration 2 | -5 | 19 | -5 ≠ -1 → enter |
+| After iteration 3 | -1 | 14 | -1 ≠ -1 → **false, exit** |
+
+**Output: 14** ✓ (-1 not included)
+
+**What would NPTEL ask about this?**
+
+❓ How many iterations does the loop execute for input `4, 15, -5, -1`?
+✅ **3** — the loop body runs for 4, 15, and -5. When -1 is read, the condition fails; the body is **not entered**.
+💡 Number of iterations ≠ number of inputs. The sentinel is read but never processed.
+
+❓ What happens if `s = 0` is placed **after** the priming read instead of before?
+✅ The result is the same here — but good practice is to initialize before the priming read in case initialization depends on the first read.
+💡 Always initialize accumulators before the loop for clarity.
+
+❓ What if the priming read is removed and `scanf` is only inside the loop?
+✅ The while condition has an **uninitialized** `a` — undefined behaviour; the loop may never execute or run garbage.
+💡 The priming read pattern ensures the condition variable has a valid value before the first test.
+
+### Loop Invariant for Summation
+> **Invariant:** At the start of each iteration, `s` holds the sum of all numbers read **so far, except the current value in `a`.**
+> - Before iteration 1: s=0, a=4 → s = sum of zero numbers ✓
+> - At termination: a=-1, s=sum of all valid numbers ✓ (sentinel excluded)
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| No priming read | `a` uninitialized; UB | Read first value before `while` |
+| `s` uninitialized | Garbage starting sum | `s = 0` before loop |
+| `scanf` only before loop, not inside | `a` never changes; infinite loop | `scanf` at **end** of loop body |
+| `while (a = -1)` | Assignment; always -1 (truthy → infinite loop) | `while (a != -1)` |
+
+### Quick Recall
+- `while (condition)` — test first, then body
+- Body executes **0 or more** times
+- Priming read: read once before loop to initialize condition variable
+- Re-read at **end** of loop body to update condition variable
+- Sentinel: special value signaling end of input; NOT added to result
+
+---
+
+## 20. Loop Invariants
+
+📅 **Week 2**
+
+### Concept Summary
+A **loop invariant** is a property that holds **before every iteration** of a loop and **after the loop terminates**. It is used to **prove correctness** — if the invariant holds at termination and the loop stops at the right condition, the final result must be correct. Loop invariants are a formal reasoning tool, not executable code.
+
+### Key Syntax / Rules Box
+```
+Loop Invariant = property true at START of each iteration
+
+To prove a loop is correct:
+1. Define the invariant
+2. Verify it holds BEFORE the first iteration (initialization)
+3. Verify it's maintained AFTER each iteration (preservation)
+4. At termination: invariant + loop condition being false → correct answer
+```
+
+### Two Key Examples
+
+**Example 1: Sum Until Sentinel (-1)**
+> **Invariant:** `s` = sum of all values read **except** the current value in `a`
+> - Init: `s=0`, `a=first_number` → s = sum of empty set = 0 ✓
+> - Preservation: loop adds `a` to `s`, reads new `a` → invariant holds for new `a` ✓
+> - Termination: `a == -1` → `s` = sum of all values except -1 ✓
+
+**Example 2: GCD (Euclidean Algorithm)**
+> **Invariant:** `GCD(original_A, original_B) = GCD(current_a, current_b)`
+> - Init: `a,b = input values` → GCD(A,B) = GCD(a,b) ✓
+> - Preservation: transform `(a,b) → (b, a%b)`. Since GCD(x,y) = GCD(y, x%y), invariant maintained ✓
+> - Termination: `b == 0` → GCD(a,0) = a → correct answer ✓
+
+**What would NPTEL ask about this?**
+
+❓ What is a loop invariant?
+✅ A property/condition that is **true at the start of every iteration** and at loop termination.
+💡 Used to formally prove correctness of loops without running them.
+
+❓ For the GCD while loop, what is the invariant?
+✅ `GCD(A, B) = GCD(a, b)` — GCD of original inputs equals GCD of current a and b at every step.
+💡 This invariant plus `b=0` at termination proves `a = GCD(A,B)`.
+
+### Quick Recall
+- Loop invariant = property true before every iteration
+- Three steps: init → preservation → termination
+- Invariant at termination + stopping condition → proves correctness
+- GCD invariant: `GCD(A,B) = GCD(a,b)` throughout
+- Sum invariant: `s` = sum of all processed values except current `a`
+
+---
+
+## 21. `do-while` Loop
+
+📅 **Week 2**
+
+### Concept Summary
+The `do-while` loop is a variant where the **body executes first, then the condition is tested**. This guarantees **at least one execution** of the body — unlike `while` which may execute zero times. It is **equally expressive** as `while` (any `do-while` can be rewritten as `while`), but produces cleaner code when an initial action is mandatory.
+
+### Key Syntax / Rules Box
+```c
+do {
+    // body — executes at LEAST once
+} while (expression);   // ← SEMICOLON required here!
+
+// Equivalent while:
+body;                   // Execute body once before loop
+while (expression) {
+    body;               // Execute body in loop
+}
+```
+- **Critical:** Semicolon after `while (expression)` is **mandatory** — forgetting it is a compile error
+- Body always runs at least once — even if expression is false from the start
+- `do-while` and `while` are equally powerful; choice depends on which is more natural
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int a;
+
+    // Print numbers including the sentinel -1
+    // With while: needs priming read + extra printf after loop
+    // With do-while: cleaner!
+    do {
+        scanf("%d", &a);   // Read number (always reads at least once)
+        printf("%d\n", a); // Print (prints even if a == -1)
+    } while (a != -1);    // Stop after printing -1
+
+    return 0;
+}
+// Input: 5 3 -1
+// Output: 5
+//         3
+//         -1
+```
+
+**Comparison — while vs do-while for same problem:**
+```c
+// WHILE version (needs extra printf after loop):
+scanf("%d", &a);        // priming read
+while (a != -1) {
+    printf("%d\n", a);
+    scanf("%d", &a);
+}
+printf("%d\n", a);      // Must print -1 separately!
+
+// DO-WHILE version (cleaner — no extra printf needed):
+do {
+    scanf("%d", &a);
+    printf("%d\n", a);  // Prints -1 naturally at the end
+} while (a != -1);
+```
+
+**What would NPTEL ask about this?**
+
+❓ How many times does a `do-while` body execute if the condition is false from the very first check?
+✅ **Once** — the body always executes before the first condition check.
+💡 This is the fundamental difference from `while` (which may execute 0 times).
+
+❓ What is the compile error if you write `do { ... } while (a != -1)` without the semicolon?
+✅ Syntax error — the semicolon after `while (expression)` is mandatory in `do-while`.
+💡 Contrast with `while (condition) { }` — NO semicolon after the while condition there.
+
+❓ Can every `do-while` loop be rewritten as a `while` loop?
+✅ Yes — just execute the body once before the `while` condition.
+💡 They are equally expressive; choice is stylistic based on clarity.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| Missing `;` after `while(expr)` in do-while | Compile error | `} while (expr);` |
+| Using `while` when body must run at least once | Body skipped if condition initially false | Use `do-while` |
+| Semicolon after `while(cond)` in plain while | Empty loop body; infinite loop or logic error | `while (cond) {` no semicolon |
+
+### Quick Recall
+- `do { body } while (condition);` — body runs **at least once**
+- **Semicolon after `while(...)`** is mandatory — most common mistake
+- Equally expressive as `while`; choose for clarity
+- Best for: sentinel must be processed, menu must display before input, input validation
+
+---
+
+## 22. Longest Contiguous Increasing Subsequence (LCIS)
+
+📅 **Week 2**
+
+### Concept Summary
+Given a stream of numbers ending with `-1`, find the **length of the longest contiguous increasing subsequence** — a run of consecutive numbers where each is **strictly greater** than the previous. Uses a **sliding window** of `previous` and `current`, with two counters: `len` (current streak) and `maxlen` (best streak seen). **Critical edge case:** if the longest run is the **last** one, it must be compared after the loop.
+
+### Key Syntax / Rules Box
+```c
+// Core variables:
+int p;          // previous number
+int c;          // current number
+int len;        // length of current increasing streak
+int maxlen;     // maximum streak length seen so far
+
+// Core decision:
+if (p < c)      len++;              // Extend streak
+else {          
+    if (len > maxlen) maxlen = len; // Save if streak beats record
+    len = 1;                        // Reset for new streak
+}
+p = c;          // Slide window: current becomes previous
+
+// CRITICAL post-loop check:
+if (len > maxlen) maxlen = len;     // Handle case: longest at end
+```
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int p, c, len = 0, maxlen = 0;
+
+    // Read first number
+    scanf("%d", &p);
+
+    if (p != -1) {          // If not empty input
+        len = 1;
+        maxlen = 1;
+
+        while (scanf("%d", &c) == 1 && c != -1) {
+            if (p < c) {                    // Extending streak
+                len++;
+            } else {                        // Streak broken
+                if (len > maxlen)           // Save if better
+                    maxlen = len;
+                len = 1;                    // Reset
+            }
+            p = c;                          // Slide window
+        }
+        // POST-LOOP: check the LAST active streak
+        if (len > maxlen) maxlen = len;
+    }
+    printf("%d\n", maxlen);
+    return 0;
+}
+```
+
+**Dry Run — Input: `3 2 1 3 5 -1`**
+| Step | p | c | p<c? | len | maxlen | Action |
+|------|---|---|------|-----|--------|--------|
+| Init | 3 | — | — | 1 | 1 | First number |
+| Read 2 | 3 | 2 | ❌ | 1 | 1 | maxlen stays 1, len→1, p=2 |
+| Read 1 | 2 | 1 | ❌ | 1 | 1 | maxlen stays 1, len→1, p=1 |
+| Read 3 | 1 | 3 | ✅ | 2 | 1 | len→2, p=3 |
+| Read 5 | 3 | 5 | ✅ | 3 | 1 | len→3, p=5 |
+| Read -1 | — | — | — | 3 | 1 | Loop exits |
+| Post-loop | — | — | — | 3 | **3** | 3 > 1 → maxlen=3 |
+
+**Output: `3`** (the subsequence is `1 3 5`) ✓
+
+**What would NPTEL ask about this?**
+
+❓ What is the output for input `9 2 4 0 3 4 6 9 2 -1`?
+✅ `5` — the longest streak is `0 3 4 6 9` (length 5).
+💡 Trace each step: 9→break(len=1), 2→ext(2 4, len=2), 0→break(max=2, len=1), 3→ext(0 3,len=2), 4→ext(len=3), 6→ext(len=4), 9→ext(len=5), 2→break(max=5, len=1). Post-loop: 1<5, maxlen stays 5.
+
+❓ Why is `len = 1` (not 0) when a streak resets?
+✅ The current number `c` itself starts a new streak of length 1.
+💡 The reset number is NOT discarded — it becomes the first element of the new potential streak.
+
+❓ Why is there a post-loop `if (len > maxlen) maxlen = len;`?
+✅ If the longest streak is the **last one in the input**, no "break" occurs to trigger the `maxlen` update inside the loop — only the sentinel `-1` exits the loop.
+💡 Without this, input `1 2 3 -1` would output 1 instead of 3.
+
+❓ What happens for input `5 -1` (single element)?
+✅ `maxlen = 1` — one element always forms a streak of length 1.
+💡 `p = 5, len = 1, maxlen = 1`. Loop reads -1 immediately, exits. Post-loop: 1 = 1, no update. Output: 1 ✓.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| No post-loop `maxlen` check | Misses longest streak if it ends the input | Always add `if (len > maxlen) maxlen = len;` after loop |
+| `p >= c` instead of `p < c` for extend | Extends when equal (wrong — need **strict** increase) | Use `p < c` for strict increase |
+| `len = 0` on reset instead of `len = 1` | Current number not counted | Reset to `len = 1` |
+| Not initializing `maxlen = 0` | Wrong comparison | `int maxlen = 0;` |
+| Updating `maxlen` only in extend branch | Never records streak lengths | Update `maxlen` in the **break** (else) branch |
+
+### Quick Recall
+- 4 variables: `p` (prev), `c` (curr), `len` (current streak), `maxlen` (best)
+- `p < c` → extend: `len++`
+- `p >= c` → break: update maxlen if `len > maxlen`, reset `len = 1`
+- Slide window: `p = c` after every decision
+- **Post-loop check is mandatory** — handles last streak
+
+---
+
+## 23. GCD with `while` Loop — Full Implementation & Loop Invariant
+
+📅 **Week 2**
+
+### Concept Summary
+The `while` loop implementation of GCD uses a **temporary variable** inside the loop to avoid overwriting values needed for the modulo operation. The loop invariant `GCD(A,B) = GCD(a,b)` provides formal proof of correctness. A **precondition** (a ≥ b via swap) is established before the loop begins.
+
+### Key Syntax / Rules Box
+```c
+// Inside the GCD while loop — MUST use temp variable:
+while (b != 0) {
+    t = a;       // Save a (needed for a % b)
+    a = b;       // New a = old b
+    b = t % b;   // New b = old a % old b   ← Uses t, not updated a!
+}
+// When loop exits: b = 0, a = GCD
+```
+- Wrong (WITHOUT temp): `a = b; b = a % b;` → uses new `a` for `%`, not original
+- Temp `t` preserves `a`'s value before overwriting
+- Swap precondition: `if (a < b) { t=a; a=b; b=t; }` before the loop
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int a, b, t;
+
+    scanf("%d %d", &a, &b);
+
+    // Step 1: Ensure a >= b
+    if (a < b) {
+        t = a; a = b; b = t;   // Cyclic exchange (3-step swap)
+    }
+
+    // Step 2: Euclidean loop
+    // Invariant: GCD(original_a, original_b) = GCD(a, b) throughout
+    while (b != 0) {
+        t = a;           // Backup a (crucial!)
+        a = b;           // a ← old b
+        b = t % b;       // b ← old a % old b (using backup t)
+    }
+
+    // Loop terminated: b = 0
+    // Invariant + GCD(a,0) = a → a is the GCD
+    printf("GCD = %d\n", a);
+    return 0;
+}
+```
+
+**Dry Run — GCD(16, 9):**
+| Iteration | a | b | t | t%b (new b) |
+|-----------|---|---|---|-------------|
+| Start | 16 | 9 | — | — |
+| 1 | 9 | 7 | 16 | 16%9=7 |
+| 2 | 7 | 2 | 9 | 9%7=2 |
+| 3 | 2 | 1 | 7 | 7%2=1 |
+| 4 | 1 | 0 | 2 | 2%1=0 |
+| Exit | **1** | 0 | — | — |
+
+**GCD(16,9) = 1** ✓
+
+**What would NPTEL ask about this?**
+
+❓ Why is `t = a; a = b; b = t % b;` needed instead of just `a = b; b = a % b;`?
+✅ After `a = b`, `a` now holds old b's value. `a % b` would then compute `old_b % old_b = 0` always — wrong!
+💡 `t` saves the original `a` so `t % b = original_a % original_b` — the correct Euclidean step.
+
+❓ What is the loop invariant for GCD?
+✅ `GCD(A, B) = GCD(a, b)` — the GCD of original inputs equals GCD of current a,b at all times.
+💡 At termination: b=0, so GCD(a,0)=a → a is the answer.
+
+❓ What is the output for GCD(8,6)?
+✅ `2` — trace: (8,6)→(6,2)→(2,0). Loop exits: a=2. ✓
+💡 Step 1: t=8, a=6, b=8%6=2. Step 2: t=6, a=2, b=6%2=0. Done.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `a=b; b=a%b;` without temp | `b` always becomes 0 (old_b % old_b) | Use temp: `t=a; a=b; b=t%b;` |
+| Stopping when `a==0` | Wrong — should stop when `b==0` | `while (b != 0)` |
+| Returning `b` instead of `a` | `b` = 0 at termination; `a` = GCD | `printf("%d", a)` after loop |
+| Not swapping when `a < b` | Algorithm works (self-corrects in one step) but less clean | Swap with temp for clarity |
+
+### Quick Recall
+- GCD(a,b) = GCD(b, a%b) until b=0; answer is a
+- Loop body: `t=a; a=b; b=t%b;` — temp is **essential**
+- Swap if `a < b`: `t=a; a=b; b=t;`
+- Invariant: `GCD(A,B) = GCD(a,b)` always holds
+- GCD(x,0) = x by definition
+
+---
+
+## 24. Matrix Row-Sum-Squared Problem (Nested While Loops)
+
+📅 **Week 2**
+
+### Concept Summary
+Given an m×n matrix, compute **Σ(rowsum²)** — sum each row, square the row sum, then sum all those squares. Uses **nested while loops**: outer iterates rows, inner iterates columns within each row. Key discipline: `rowsum` must be **reset to 0** for every new row inside the outer loop.
+
+### Key Syntax / Rules Box
+```c
+// Formula: total = Σᵢ (Σⱼ A[i][j])²
+// Outer loop: rows (0 to m-1)
+// Inner loop: columns (0 to n-1)
+
+squaresum = 0;       // Init ONCE before outer loop
+rowindex = 0;
+while (rowindex < m) {
+    rowsum = 0;      // RESET for each new row (inside outer loop)
+    colindex = 0;
+    while (colindex < n) {
+        scanf("%d", &a);
+        rowsum += a;
+        colindex++;
+    }
+    squaresum += rowsum * rowsum;   // Add squared row sum
+    rowindex++;
+}
+```
+
+### Detailed Code Example
+```c
+#include <stdio.h>
+int main() {
+    int m, n, a, rowindex, colindex;
+    int rowsum, squaresum = 0;
+
+    scanf("%d %d", &m, &n);   // Read matrix dimensions
+
+    rowindex = 0;
+    while (rowindex < m) {          // Outer: each row
+        rowsum = 0;                 // CRITICAL: reset per row
+        colindex = 0;
+        while (colindex < n) {      // Inner: each column
+            scanf("%d", &a);
+            rowsum = rowsum + a;
+            colindex++;
+        }
+        squaresum = squaresum + rowsum * rowsum;
+        rowindex++;
+    }
+    printf("%d\n", squaresum);
+    return 0;
+}
+```
+
+**Example — 3×4 matrix:**
+```
+4  7  11  2    → rowsum = 24 → 24² = 576
+1  1   2  4    → rowsum = 8  →  8² = 64
+2  9   0 -1    → rowsum = 10 → 10² = 100
+Total = 576 + 64 + 100 = 740
+```
+
+**What would NPTEL ask about this?**
+
+❓ What happens if `rowsum = 0` is placed before the outer loop instead of inside it?
+✅ Row 1's sum gets added to Row 0's sum — every `rowsum` accumulates all previous rows.
+💡 `rowsum` must reset to 0 at the **start of each outer iteration**.
+
+❓ How many total `scanf` calls execute for a 3×4 matrix?
+✅ 12 (3 rows × 4 columns = m × n total calls).
+💡 Every element must be read in order, row by row.
+
+### Common Pitfalls Table
+| Mistake | What happens | Correct version |
+|---------|-------------|-----------------|
+| `rowsum = 0` before outer loop | Carries previous rows' values | Inside outer loop |
+| `squaresum += rowsum` (not squared) | Sums row sums, not squares | `squaresum += rowsum * rowsum` |
+| `colindex` not reset per row | Inner loop may not execute for row 2+ | `colindex = 0` inside outer loop |
+
+### Quick Recall
+- `squaresum = 0` → init once before outer loop
+- `rowsum = 0` → reset inside outer loop (per row)
+- `colindex = 0` → reset inside outer loop (per row)
+- Total scanf calls = m × n
+- Formula: outer accumulates `rowsum²`, inner accumulates `rowsum`
+
+---
+
+## 🗂️ Week 1 Topic Map (Complete)
+
+```
+Week 1 Topics (from transcript):
+├── Topic 1: Introduction — Programming process, algorithms, flowcharts
+├── Topic 2: GCD Algorithm — Naive vs Euclidean, modulo, variables
+├── Topic 3: The Programming Cycle — Edit-compile-run, gcc, a.out
+├── Topic 4: Tracing a Simple Program — printf, \n, comments, program counter
+├── Topic 5: Variables — int, float, declaration, assignment, format specifiers
+└── Topic 6: Operators — %, &&, ||, !, leap year, short-circuit evaluation
+```
+
+---
+
+## 🗂️ Week 2 Topic Map (Complete)
+
+```
+Week 2 Topics (from transcript):
+├── Topic 1: While Loop I — Structure, priming read, sentinel, flowchart
+│           While Loop Example — Sum with sentinel, loop invariant
+│           While Loop GCD — temp variable swap, invariant proof
+├── Topic 2: Longest Increasing Subsequence I — Problem, sliding window
+│           Longest Increasing Subsequence II — Implementation, boundary cases
+│           Longest Increasing Subsequence III — Edge case (last streak), tracing
+├── Topic 3: Do-While Loop — Structure, guaranteed execution, sentinel printing
+├── Topic 4: Matrix Problem — Nested while loops, row-sum-squared
+├── Topic 5: For Loops — Structure, equivalence to while, comma operator, sum of reciprocals
+├── Topic 6: Matrix Trace — Nested for loops, diagonal condition i==j
+├── Topic 7: Break Statement — Infinite loops, break with sentinel, flag alternative, break+for update
+└── Topic 8: Continue Statement — Skip iteration, scanf return value, Pythagorean triples
+```
+
+---
+
+## ⚡ Updated Ultimate Quick Recall Sheet (Exam Day — Complete)
+
+**Operators**
+- `=` assigns; `==` tests equality — the #1 C bug
+- `%` = remainder; `a % b == 0` → b divides a
+- `&&` = AND (both); `||` = OR (either); `!` = NOT (flips)
+- `&&` short-circuits left→right; stops at first false
+- `||` short-circuits left→right; stops at first true
+
+**Loops**
+- `while`: test first → 0 or more times
+- `do-while`: body first → 1 or more times; needs `;` after `while(cond)`
+- `for (init; test; update)`: init once, test before each, update after each
+- `break` in `for` → update does **NOT** run
+- `continue` in `for` → update **DOES** run; then test
+- `break` exits the **loop**, NOT the `if`
+- `while (1)` = infinite loop → needs `break` or `return`
+
+**Input / Output**
+- `scanf` needs `&` before every variable (except arrays)
+- `scanf` returns count of items read → `== 1` to check success
+- Space before `%c` in format string skips whitespace
+- `getchar()` reads **everything** including `'\n'`
+- `'x'` = char literal (single); `"x"` = string (double)
+- `printf` stays on same line unless `\n` is included
+- `\n` = newline (one character, backslash-n NOT forward slash)
+
+**Memory & Types**
+- Uninitialized variables = **garbage value** (undefined behaviour)
+- Always init accumulators: `sum = 0`, `max = 0`, `len = 0`
+- `int` = whole numbers; `float` = decimal (limited precision)
+- `%d` → int; `%f` → float; `%c` → char; `%lf` → double (scanf)
+- Variable names: case-sensitive, no starting digit
+
+**Key Patterns**
+- Swap: `t=a; a=b; b=t;` (3 steps, temp required)
+- GCD loop: `t=a; a=b; b=t%b;` until `b==0`; answer is `a`
+- GCD invariant: `GCD(A,B) = GCD(a,b)` throughout
+- Trace diagonal: `if (i == j)` (0-indexed, both loops 0 to n-1)
+- Streak tracking: extend if `p < c`; save+reset if `p >= c`; **post-loop check**
+- Alternating sum: `if (i%2==0) sum-=i; else sum+=i;`
+- Upper triangular: check `matrix[i][j] != 0` for `i>j` (outer `i=1..n-1`, inner `j=0..i-1`)
+- Blank line detection: two consecutive `'\n'` — pre-init `current = '\n'`
+- Priming read: read first value before `while`, re-read at **end** of loop body
+- `rowsum = 0` inside outer loop — reset per row, never outside
+
+**Flowchart Symbols**
+- Oval = Start/End
+- Parallelogram = Input/Output
+- Rectangle = Process/Operation
+- Diamond = Decision (yes/no)
+
+**Compilation**
+- `gcc file.c` → compiles → produces `a.out`
+- `./a.out` → runs (`./ `required on Linux)
+- Compile error → no executable produced
+- `#include <stdio.h>` → required for `printf` and `scanf`
+
+---
+
+# 🧪 Graded Assignments — Week 1 & Week 2
+
+---
+
+## 🧪 Assignment 1 — Week 1
 
 📅 **Week 1** | NPTEL Graded Assignment
 
 ---
 
-### Question 1 — Volume of a Cuboid
+### 📌 What This Assignment Tests at a Glance
 
-> **Task:** Read length, breadth, height of a cuboid → print its volume.
-> **Formula:** `Volume = Length × Breadth × Height`
+```
+Q1 → Variables + scanf + Arithmetic (* operator)
+Q2 → if-else + Formula with integers + Case-sensitive output
+Q3 → char type + %c in scanf + if-else if-else chain
+```
 
-#### ✅ Correct Solution (Cleaned)
+---
+
+### Q1 — Volume of a Cuboid
+
+**What to do:** Read 3 integers (length, breadth, height). Multiply them. Print the result.
+
+```
+Formula:  Volume = Length × Breadth × Height
+Input:    3 integers on one line
+Output:   1 integer (the volume)
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
 int main() {
     int length, breadth, height, volume;
 
-    scanf("%d %d %d", &length, &breadth, &height);  // Read 3 integers
+    scanf("%d %d %d", &length, &breadth, &height);  // Read all 3 at once
 
-    volume = length * breadth * height;              // Multiply all three
+    volume = length * breadth * height;              // * is multiply in C
 
-    printf("%d", volume);   // Print WITHOUT newline (as required)
+    printf("%d", volume);                            // No \n unless asked
 
     return 0;
 }
 ```
 
-#### 🔍 Explanation — Line by Line
-| Line | What it does | Why it matters |
-|------|-------------|----------------|
-| `int length, breadth, height, volume;` | Declares 4 integer variables | All 4 must be declared before use |
-| `scanf("%d %d %d", &length, &breadth, &height)` | Reads 3 space-separated integers | The `&` is mandatory — passes address to scanf |
-| `volume = length * breadth * height` | Multiplies all three | `*` is the multiplication operator in C |
-| `printf("%d", volume)` | Prints integer, no newline | NPTEL often checks exact output format |
+#### 🔍 Line-by-Line (Plain English)
+| Line | What it does |
+|------|-------------|
+| `int length, breadth, height, volume;` | Creates 4 integer boxes in memory |
+| `scanf("%d %d %d", ...)` | Reads 3 numbers from input; `&` sends the address so scanf can store the value |
+| `volume = length * breadth * height` | Calculates volume; `*` is multiply (not `×`) |
+| `printf("%d", volume)` | Prints the integer; `%d` = format for int |
+
+#### 🧪 Dry Runs
+| Input | Calculation | Output |
+|-------|------------|--------|
+| `2 3 4` | 2×3×4 = 24 | `24` |
+| `5 5 5` | 5×5×5 = 125 | `125` |
+| `1 1 1` | 1×1×1 = 1 | `1` |
 
 #### ❓ NPTEL MCQ Traps
 
-❓ What happens if you write `printf("%d\n", volume)` instead of `printf("%d", volume)`?
-✅ A newline is printed after the number. NPTEL may or may not penalise this — but match the spec exactly.
-💡 When the problem says "Print the volume" with no mention of newline, use `printf("%d", volume)`.
+❓ What happens if `&` is missing: `scanf("%d", length)` instead of `scanf("%d", &length)`?
+✅ Undefined behaviour / crash — scanf needs the **address** of the variable, not the value.
+💡 `&length` = "address of length box". Without `&`, scanf writes to a random memory location.
 
-❓ What is the output if inputs are `2 3 4`?
-✅ `24` (2 × 3 × 4 = 24)
-💡 Straightforward multiplication — no traps here except forgetting `&` in scanf.
+❓ Output for `2 3 4`?
+✅ `24` — straightforward. The only trap is forgetting `&` in scanf.
+💡 `2 × 3 × 4 = 24`. No overflow risk for small numbers.
 
-❓ What if inputs are `100 200 300`?
-✅ `6000000` — fits in `int` (max ~2.1 billion). But `1000 1000 1000` = 1,000,000,000 — still fits. `2000 2000 2000` = 8,000,000,000 — **overflows int!**
-💡 For very large inputs, use `long int` and `%ld`.
+❓ What if `printf("%d\n", volume)` is used instead of `printf("%d", volume)`?
+✅ Prints `24` then a newline. NPTEL checks exact output — if spec says no newline, omit `\n`.
+💡 Always match the output format exactly to the problem statement.
 
-#### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Missing `&` in scanf: `scanf("%d", length)` | Undefined behaviour / crash | Always use `&` with scanf |
-| Using `+` instead of `*` | Prints sum, not volume | Use `*` for multiplication |
-| `int` overflow for large inputs | Wrong (garbage) answer | Use `long int` for safety |
-| `printf("%f", volume)` | Wrong format specifier for int | Use `%d` for `int` |
+❓ What if `1000 1000 1000` is the input?
+✅ `1000000000` — just barely fits in `int` (max ~2.1 billion). But `2000 2000 2000 = 8,000,000,000` overflows!
+💡 For safety with large inputs, use `long int` and `%ld`.
 
-#### Quick Recall
-- Volume formula: `l * b * h` (three `*` operators)
-- scanf needs `&` before each variable
-- `%d` for int, `%ld` for long int
-- Check for overflow when inputs could be large
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `scanf("%d", length)` — missing `&` | Crash / garbage | Always `&length` |
+| `volume = length + breadth + height` | Adds instead of multiplies | Use `*` |
+| `printf("%f", volume)` | Wrong format for int | Use `%d` |
+| `int` overflow for large values | Garbage output | Use `long int` + `%ld` |
+
+#### ⚡ Quick Recall
+- Formula: `l * b * h` (three `*`)
+- `scanf` always needs `&` before variable name
+- `%d` prints integers; `%ld` for `long int`
+- `*` = multiply in C (never `×`)
 
 ---
 
-### Question 2 — Voter Eligibility
+### Q2 — Voter Eligibility
 
-> **Task:** Given current age and election year, check if person will be ≥ 18 in that year.
-> **Formula:** `age_in_election_year = current_age + (election_year - 2026)`
-> **Rule:** Print `Eligible` if ≥ 18, else `Not Eligible`
+**What to do:** Given a person's current age and an election year, check if they'll be ≥ 18 in that election year. Current year = 2026.
 
-#### ✅ Correct Solution (Cleaned)
+```
+Formula:  Age in election year = current_age + (election_year - 2026)
+Rule:     If age_in_election_year >= 18 → "Eligible", else → "Not Eligible"
+Input:    2 integers: current_age  election_year
+Output:   Eligible   OR   Not Eligible   (exact spelling, case-sensitive)
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
 int main() {
     int age, year;
 
-    scanf("%d %d", &age, &year);          // Read current age and election year
+    scanf("%d %d", &age, &year);
 
-    // Calculate age in election year and check eligibility
-    if (age + (year - 2026) >= 18)        // Key formula embedded in condition
+    if (age + (year - 2026) >= 18)
         printf("Eligible");
     else
         printf("Not Eligible");
@@ -1239,79 +2180,86 @@ int main() {
 }
 ```
 
-#### 🔍 Explanation — Line by Line
-| Line | What it does | Why it matters |
-|------|-------------|----------------|
-| `scanf("%d %d", &age, &year)` | Reads two integers | Current age first, then election year |
-| `age + (year - 2026)` | Projects age to election year | `year - 2026` = years from now |
-| `>= 18` | Checks eligibility threshold | 18 or older = eligible |
-| `printf("Eligible")` | Exact string — case sensitive | Do NOT print `eligible` (lowercase) |
+#### 🔍 How the Formula Works (Plain English)
 
-#### 🔍 Dry Run Examples
-| Current Age | Election Year | Age in Election Year | Output |
-|-------------|--------------|----------------------|--------|
-| 16 | 2028 | 16 + (2028−2026) = 18 | `Eligible` |
-| 15 | 2028 | 15 + 2 = 17 | `Not Eligible` |
-| 20 | 2024 | 20 + (2024−2026) = 18 | `Eligible` |
-| 18 | 2026 | 18 + 0 = 18 | `Eligible` |
-| 17 | 2026 | 17 + 0 = 17 | `Not Eligible` |
+```
+"How old will this person be at the election?"
+= their current age + how many years until the election
+= age + (election_year - 2026)
 
-> ⚠️ Note: `election_year - 2026` can be **negative** if the year is before 2026 — the formula still works correctly in C with negative integers.
+If election_year = 2028:  gap = 2028 - 2026 = +2 years in the future
+If election_year = 2024:  gap = 2024 - 2026 = -2 years (past) — still valid C math
+If election_year = 2026:  gap = 0 — no change
+```
+
+#### 🧪 Dry Runs
+| Current Age | Election Year | Age at Election | ≥ 18? | Output |
+|-------------|--------------|-----------------|-------|--------|
+| 16 | 2028 | 16 + 2 = **18** | ✅ | `Eligible` |
+| 15 | 2028 | 15 + 2 = 17 | ❌ | `Not Eligible` |
+| 18 | 2026 | 18 + 0 = **18** | ✅ | `Eligible` |
+| 17 | 2026 | 17 + 0 = 17 | ❌ | `Not Eligible` |
+| 20 | 2024 | 20 + (−2) = **18** | ✅ | `Eligible` |
 
 #### ❓ NPTEL MCQ Traps
 
-❓ What is the output for age = 16, year = 2028?
-✅ `Eligible` — 16 + (2028 - 2026) = 16 + 2 = 18 ≥ 18
-💡 Exactly 18 satisfies `>= 18`. If the condition were `> 18`, this would print `Not Eligible`.
+❓ Output for age=16, year=2028?
+✅ `Eligible` — 16 + 2 = 18, and 18 **≥** 18 is true.
+💡 The condition is `>= 18` (greater than OR EQUAL). If it were `> 18`, exactly-18 would fail.
 
-❓ What if year = 2024 (past year) and age = 20?
-✅ `Eligible` — 20 + (2024 - 2026) = 20 + (−2) = 18 ≥ 18
-💡 Subtraction with negative result is valid C arithmetic.
+❓ What if `>=` is replaced with `>`?
+✅ A person who will be exactly 18 incorrectly gets `Not Eligible`.
+💡 Always use `>=` for "18 or older". `>` means "strictly more than 18".
 
-❓ What if `>=` is changed to `>`?
-✅ A person who will be exactly 18 would get `Not Eligible` — **wrong answer**.
-💡 The threshold is **18 or older** → must use `>=`, never just `>`.
+❓ What if output is `printf("eligible")` (lowercase e)?
+✅ Wrong — C output is case-sensitive. Must be exactly `Eligible`.
+💡 `Eligible` ≠ `eligible` ≠ `ELIGIBLE`.
 
-❓ What is the output for age = 17, year = 2026?
-✅ `Not Eligible` — 17 + 0 = 17 < 18
-💡 Current year is 2026, so `year - 2026 = 0` — age doesn't change.
+❓ Can `year - 2026` be negative?
+✅ Yes — for past election years. C handles negative integers correctly. 20 + (−2) = 18.
+💡 No special handling needed — normal integer subtraction works fine.
 
-#### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| `> 18` instead of `>= 18` | Age exactly 18 is wrongly rejected | Use `>=` |
-| Wrong formula: `age - (year - 2026)` | Subtracts instead of adds | `age + (year - 2026)` |
-| `printf("eligible")` (lowercase) | Wrong output — C is case-sensitive | `printf("Eligible")` |
-| Reading year before age | Logic works but reads wrong values | Read age first, then year (match problem spec) |
-| Hardcoding `2026`: `age + year - 2026` | Correct **only** if current year is 2026 | This is intentional per problem statement |
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `> 18` instead of `>= 18` | Rejects exactly-18-year-olds | Use `>=` |
+| `age - (year - 2026)` | Subtracts instead of adds | `age + (year - 2026)` |
+| `printf("eligible")` | Wrong case | `printf("Eligible")` |
+| `printf("Not eligible")` | Wrong case | `printf("Not Eligible")` |
 
-#### Quick Recall
+#### ⚡ Quick Recall
 - Formula: `age + (year - 2026) >= 18`
-- Use `>=` not `>` for ≥ 18 check
-- Output strings are **case-sensitive**: `Eligible` / `Not Eligible`
-- `year - 2026` can be 0 or negative — C handles negative int arithmetic correctly
+- Use `>=` not `>` (18-year-olds ARE eligible)
+- Output: `Eligible` / `Not Eligible` — exact case
+- Negative gap (past year) is valid C arithmetic
 
 ---
 
-### Question 3 — Simple Calculator (+, -, *)
+### Q3 — Simple Calculator (+, −, *)
 
-> **Task:** Read two integers and an operator (`+`, `-`, or `*`), print the result.
+**What to do:** Read two integers and an operator symbol. Do the operation. Print result.
 
-#### ✅ Correct Solution (Cleaned)
+```
+Input:    integer  operator  integer    (e.g.  5 + 3)
+Operator: only +, -, or *  (guaranteed)
+Output:   the result as an integer
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
 int main() {
     int a, b, result;
-    char op;
+    char op;                             // operator is a CHARACTER, not int
 
-    scanf("%d %c %d", &a, &op, &b);   // Read: integer, char operator, integer
+    scanf("%d %c %d", &a, &op, &b);    // space before %c skips the space in input
 
-    if (op == '+')
+    if (op == '+')                       // single quotes for char comparison
         result = a + b;
     else if (op == '-')
         result = a - b;
-    else                               // Only +, -, * guaranteed → safe to use else
+    else                                 // only +,-,* guaranteed → else = *
         result = a * b;
 
     printf("%d", result);
@@ -1320,200 +2268,230 @@ int main() {
 }
 ```
 
-#### 🔍 Explanation — Line by Line
-| Line | What it does | Why it matters |
-|------|-------------|----------------|
-| `char op` | Declares op as a character variable | Operators are single characters, not integers |
-| `scanf("%d %c %d", &a, &op, &b)` | Reads int, char, int with spaces | The space before `%c` skips whitespace automatically |
-| `op == '+'` | Compares char using single quotes | `'+'` is a char literal; `"+"` would be a string — wrong type |
-| Final `else` | Handles `*` without explicit check | Safe because problem guarantees only +, -, * |
+#### 🔍 Why `char` and Not `int`?
 
-#### 🔍 Dry Run Examples
-| Input | a | op | b | Result | Output |
-|-------|---|----|---|--------|--------|
+```
+Input: 5 + 3
+         ↑
+    This is the CHARACTER '+', not a number.
+    In C: char stores one character.
+          int stores a number.
+    Use char op;  and  scanf("%c", &op);
+```
+
+#### 🔍 The `%d %c %d` Format String
+
+```
+scanf("%d %c %d", &a, &op, &b)
+       ↑   ↑   ↑
+       |   |   reads integer into b
+       |   reads ONE character into op (the space before %c skips whitespace)
+       reads integer into a
+
+Input "5 + 3":
+  a = 5
+  op = '+'   (the space before %c in format string eats the space in input)
+  b = 3
+```
+
+> ⚠️ Without the space before `%c`, `op` would read the **space** between `5` and `+`, not the `+` itself!
+
+#### 🧪 Dry Runs
+| Input | a | op | b | Operation | Output |
+|-------|---|----|---|-----------|--------|
 | `5 + 3` | 5 | `+` | 3 | 5+3 | `8` |
 | `10 - 4` | 10 | `-` | 4 | 10-4 | `6` |
-| `6 * 7` | 6 | `*` | 7 | 6*7 | `42` |
+| `6 * 7` | 6 | `*` | 7 | 6×7 | `42` |
 | `3 - 9` | 3 | `-` | 9 | 3-9 | `-6` |
 
 #### ❓ NPTEL MCQ Traps
 
-❓ Why is `op` declared as `char` and not `int`?
-✅ Because `+`, `-`, `*` are **characters** (single symbols), not integers. `char` stores one character.
-💡 Using `int op` would not work with `scanf("%c", &op)` correctly.
-
 ❓ What is wrong with `if (op == "+")`?
-✅ `"+"` is a **string literal** (type `char *`), not a character. Should be `op == '+'` (single quotes).
-💡 Classic NPTEL trap: single quotes `' '` for `char`, double quotes `" "` for strings.
+✅ `"+"` is a **string** (double quotes), not a character. Char comparisons need **single quotes**: `op == '+'`.
+💡 `'+'` = char (one symbol). `"+"` = string (array of chars). Different types — comparing them is a type error.
 
-❓ What does `scanf("%d %c %d", &a, &op, &b)` do with input `5 + 3`?
-✅ Reads `a=5`, skips space, reads `op='+'`, skips space, reads `b=3`.
-💡 The space in `"%d %c %d"` before `%c` is critical — without it, `op` may capture the space character `' '` instead of `'+'`.
+❓ Why must there be a space before `%c` in `"%d %c %d"`?
+✅ Without it, `op` reads the **space character** `' '` that appears between `5` and `+` in the input.
+💡 The space in the format string tells scanf to skip any whitespace before reading the character.
 
-❓ What if the operator is `/` (division)? What does the program print?
-✅ It falls into the `else` branch and computes `a * b` instead — **wrong answer**.
-💡 The `else` is only safe because the problem guarantees only `+`, `-`, `*`. If division were possible, you'd need `else if (op == '*')` and an explicit `else` for error.
+❓ What if input is `5 / 3` (division)?
+✅ Falls into the `else` branch → computes `5 * 3 = 15` — **wrong**. But the problem guarantees only `+`, `-`, `*`, so this case won't appear.
+💡 The `else` is safe **only** because the problem specification guarantees only three operators.
 
 ❓ What is the output for `3 - 9`?
-✅ `-6` — negative integers print correctly with `%d`.
-💡 `int` can hold negative values; `%d` prints the sign automatically.
+✅ `-6` — `%d` prints negative integers correctly with the minus sign.
+💡 `int` holds negative values; `printf("%d", -6)` prints `-6` automatically.
 
-#### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| `op == "+"` (double quotes) | Type mismatch: comparing char to char* | `op == '+'` (single quotes) |
-| `int op` instead of `char op` | Cannot store character correctly | Use `char op` |
-| `scanf("%d%c%d")` (no space before `%c`) | `op` captures space `' '` between number and operator | Add space: `"%d %c %d"` |
-| Three separate `if` instead of `if-else if-else` | All three conditions evaluated; last assignment wins | Use `else if` chain |
-| `printf("%c", result)` | Prints ASCII character, not the number | Use `printf("%d", result)` |
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `op == "+"` (double quotes) | Type mismatch | `op == '+'` (single quotes) |
+| `int op` instead of `char op` | Can't store `+`, `-`, `*` properly | Use `char op` |
+| `scanf("%d%c%d", ...)` — no space before `%c` | `op` captures the space, not the operator | Add space: `"%d %c %d"` |
+| Three separate `if` blocks (not `else if`) | All three conditions evaluated independently | Use `else if` chain |
+| `printf("%c", result)` | Prints ASCII symbol, not the number | Use `printf("%d", result)` |
 
-#### Quick Recall
-- Operator is a `char` → use `%c` in scanf, single quotes in comparison
-- Always space before `%c` in scanf format string: `"%d %c %d"`
-- `if-else if-else` chain — only one branch executes
-- `else` as final catch is safe **only** when inputs are guaranteed
-- `%d` prints integers (including negatives) correctly
-
----
-
-## 🗂️ Assignment 1 — Concept Map
-
-```
-Assignment 1 Tests:
-├── Q1: Variables + Arithmetic operators (*) + printf/scanf
-├── Q2: Conditional (if-else) + Formula evaluation + Integer arithmetic
-└── Q3: char type + %c format specifier + if-else if-else chain
-```
-
-| Concept | Tested in | Key thing to remember |
-|---------|-----------|----------------------|
-| `int` declaration & scanf | Q1, Q2, Q3 | `&` before variable name in scanf |
-| Arithmetic `*` operator | Q1 | Not `×` — use `*` in C |
-| `if-else` | Q2, Q3 | Use `>=` for "18 or older"; `else if` for chains |
-| `char` type & `%c` | Q3 | Single quotes for char literals: `'+'` not `"+"` |
-| scanf format spacing | Q3 | Space before `%c` to skip whitespace |
-| Integer output `%d` | Q1, Q2, Q3 | Works for positive and negative integers |
+#### ⚡ Quick Recall
+- Operator is `char` → `char op;` + `%c` in scanf + single quotes in comparison
+- Format: `"%d %c %d"` — the space before `%c` is critical
+- `if-else if-else` chain — only one branch runs
+- `else` without explicit `op == '*'` is safe only when inputs are guaranteed
 
 ---
 
-## 🧪 Assignment 2 Analysis
+### 🗂️ Assignment 1 — Summary Table
+
+| Q | Topic tested | Key concept | Most common mistake |
+|---|-------------|-------------|-------------------|
+| Q1 | scanf + arithmetic | `*` multiplies; `&` in scanf | Missing `&` / using `+` instead of `*` |
+| Q2 | if-else + formula | `>= 18`; case-sensitive output | Using `>` instead of `>=` |
+| Q3 | char + %c + chain | single quotes; space before `%c` | `"+"` (double quotes) instead of `'+'` |
+
+---
+
+## 🧪 Assignment 2 — Week 2
 
 📅 **Week 2** | NPTEL Graded Assignment
 
 ---
 
-### Question 1 — Alternating Sum of First N Natural Numbers
+### 📌 What This Assignment Tests at a Glance
 
-> **Task:** Read N, compute `1 − 2 + 3 − 4 + 5 − ...± N`
-> **Rule:** Odd numbers are **added**, even numbers are **subtracted**
+```
+Q1 → for loop + modulo (even/odd check) + accumulator
+Q2 → for loop + two-variable streak tracking (current/longest)
+Q3 → 2D array (VLA) + nested for loops + below-diagonal indexing + early exit
+```
 
-#### ✅ Correct Solution (Cleaned)
+---
+
+### Q1 — Alternating Sum of First N Natural Numbers
+
+**What to do:** Read N. Compute `1 − 2 + 3 − 4 + 5 − ... ± N`.
+Rule: **odd numbers add, even numbers subtract**.
+
+```
+Input:   single integer N
+Output:  single integer (the alternating sum)
+
+Example: N=5 → 1−2+3−4+5 = 3
+Example: N=4 → 1−2+3−4 = −2
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
 int main() {
-    int n, i, sum = 0;   // sum initialized to 0 — accumulator
+    int n, i, sum = 0;    // sum MUST start at 0
 
-    scanf("%d", &n);     // Read N
+    scanf("%d", &n);
 
-    for (i = 1; i <= n; i++) {
-        if (i % 2 == 0)       // Even index → subtract
+    for (i = 1; i <= n; i++) {      // i goes 1, 2, 3, ..., N
+        if (i % 2 == 0)             // even number → subtract
             sum = sum - i;
-        else                  // Odd index → add
+        else                        // odd number → add
             sum = sum + i;
     }
 
-    printf("%d", sum);   // Print result, no newline
+    printf("%d", sum);
     return 0;
 }
 ```
 
-#### 🔍 Explanation — Line by Line
-| Line | What it does | Why it matters |
-|------|-------------|----------------|
-| `int n, i, sum = 0` | Declares and initializes accumulator | `sum` must start at 0 or result is garbage |
-| `for (i = 1; i <= n; i++)` | Loops from 1 to N inclusive | Starts at 1, not 0 — natural numbers begin at 1 |
-| `if (i % 2 == 0)` | Checks if current number is even | `% 2 == 0` → even; `% 2 != 0` (or `== 1`) → odd |
-| `sum = sum - i` | Subtracts even numbers | e.g., i=2: sum = 0+1−2 = −1 |
-| `sum = sum + i` | Adds odd numbers | e.g., i=1: sum = 0+1 = 1 |
-| `printf("%d", sum)` | Prints final alternating sum | `%d` for integer; no `\n` needed |
+#### 🔍 How It Works (Plain English)
 
-#### 🔍 Dry Run — N = 5
-| i | i%2 | Operation | sum |
-|---|-----|-----------|-----|
-| 1 | 1 (odd) | sum = 0 + 1 | 1 |
-| 2 | 0 (even) | sum = 1 − 2 | −1 |
-| 3 | 1 (odd) | sum = −1 + 3 | 2 |
-| 4 | 0 (even) | sum = 2 − 4 | −2 |
-| 5 | 1 (odd) | sum = −2 + 5 | **3** |
+```
+Start with sum = 0.
+Go through each number 1 to N one by one:
+  - Is the number even? (i % 2 == 0)  →  subtract it
+  - Is the number odd?  (else)         →  add it
+Print the final sum.
+```
 
-**Output: `3`**
+#### 🧪 Dry Run — N = 5
+| i | Even or Odd? | Action | sum after |
+|---|-------------|--------|-----------|
+| 1 | Odd | sum = 0 + 1 | **1** |
+| 2 | Even | sum = 1 − 2 | **−1** |
+| 3 | Odd | sum = −1 + 3 | **2** |
+| 4 | Even | sum = 2 − 4 | **−2** |
+| 5 | Odd | sum = −2 + 5 | **3** |
 
-> 💡 **Pattern shortcut:** For even N → result = `−N/2`. For odd N → result = `(N+1)/2`. Not needed for coding but useful for verifying dry runs.
+**Output: `3`** ✓
+
+> 💡 **Quick pattern check:** Even N → answer = `−N/2`. Odd N → answer = `(N+1)/2`. Use this to verify dry runs, not for coding.
 
 #### ❓ NPTEL MCQ Traps
 
-❓ What is the output for N = 1?
-✅ `1`
-💡 Loop runs once: i=1 is odd → sum = 0 + 1 = 1. The condition `i <= n` includes 1.
+❓ Output for N=1?
+✅ `1` — loop runs once: i=1 is odd → sum = 0+1 = 1.
+💡 `i <= n` includes 1 when n=1.
 
-❓ What is the output for N = 4?
-✅ `−2` → printed as `-2`
-💡 1−2+3−4 = −2. Negative integers print correctly with `%d` — no special handling needed.
+❓ Output for N=4?
+✅ `-2` — 1−2+3−4 = −2. Negative integers print fine with `%d`.
+💡 No special handling for negative output — `printf("%d", -2)` prints `-2`.
 
 ❓ What if `sum` is not initialized to 0?
-✅ Garbage value — `sum` starts at whatever was in that memory location.
-💡 Classic NPTEL trap. **Always initialize accumulators.**
+✅ Garbage starting value → wrong answer always.
+💡 **Always initialize accumulators before the loop.**
 
-❓ What if the condition is `i % 2 == 1` for odd check instead of `else`?
-✅ Same result — `i % 2 == 1` and `else` (after even check) are equivalent for positive integers.
-💡 For negative `i`, `i % 2` can be `-1` in C (not `1`), so `else` is safer. But since i starts at 1 and goes up, both work here.
+❓ What if loop starts at `i = 0` instead of `i = 1`?
+✅ i=0 is even → sum = 0 − 0 = 0 (harmless), but the pattern shifts: number 0 is counted as the "first" even. This gives wrong results for most inputs.
+💡 Natural numbers start at 1. Always `i = 1`.
 
-❓ What if `i` starts at 0 instead of 1?
-✅ i=0 is even → sum = 0 − 0 = 0 (adding 0 harmlessly), then continues. Off-by-one: the loop would include i=N and also i=0 (which is irrelevant), BUT the range shifts — effectively computes `0−1+2−3...` which is wrong.
-💡 Natural numbers start at **1**, not 0. Always `i = 1` here.
+❓ What if `i < n` instead of `i <= n`?
+✅ Misses N (the last number). For N=5: sums only 1−2+3−4 = −2 instead of 3.
+💡 Use `i <= n` to include N itself.
 
-#### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| `sum` not initialized | Garbage starting value | `int sum = 0` |
-| `i = 0` (starts at 0) | Wrong sequence — 0 included, shifts the alternating sign | `i = 1` |
-| `i < n` instead of `i <= n` | Misses the last number N | `i <= n` |
-| `i % 2 == 1` for odd check (negative risk) | Works here but unsafe generally | Use `else` after even check |
-| `printf("%d\n", sum)` | Extra newline — may not match expected output | `printf("%d", sum)` |
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `int sum;` (no `= 0`) | Garbage starting value | `int sum = 0` |
+| `i = 0` instead of `i = 1` | Wrong alternating pattern | Start at `i = 1` |
+| `i < n` instead of `i <= n` | Misses the last number | Use `i <= n` |
+| Adding when even, subtracting when odd | Reversed sign | `if (i%2==0)` subtract; `else` add |
 
-#### Quick Recall
-- Alternating sum: odd → add, even → subtract
-- `i % 2 == 0` → even; `else` → odd
-- Initialize `sum = 0` before loop
-- Loop: `for (i = 1; i <= n; i++)`
-- Pattern: N even → `-(N/2)`; N odd → `(N+1)/2`
+#### ⚡ Quick Recall
+- `sum = 0` before loop — mandatory
+- Loop: `for (i = 1; i <= n; i++)` — starts at 1, includes N
+- Even (`i % 2 == 0`) → subtract; Odd (`else`) → add
+- Pattern: N even → `−N/2`; N odd → `(N+1)/2`
 
 ---
 
-### Question 2 — Longest Consecutive Sequence of Even Numbers
+### Q2 — Longest Consecutive Sequence of Even Numbers
 
-> **Task:** Read N integers, find the length of the longest run of consecutive even numbers.
-> **Rule:** An odd number **resets** the current streak to 0.
+**What to do:** Read N integers. Find the length of the longest **unbroken run** of even numbers. Any odd number breaks the run and resets the count.
 
-#### ✅ Correct Solution (Cleaned)
+```
+Input:   first line = N (count of numbers)
+         second line = N space-separated integers
+Output:  single integer (length of longest even streak)
+
+Example: N=7, numbers: 2 4 3 6 8 10 5
+         Streaks: [2,4]=2, [6,8,10]=3
+         Output: 3
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
 int main() {
     int N, x;
-    int current = 0, longest = 0;  // current = running streak, longest = best seen
+    int current = 0, longest = 0;   // current = active streak; longest = best so far
 
-    scanf("%d", &N);                // Read count of integers
+    scanf("%d", &N);
 
     for (int i = 0; i < N; i++) {
-        scanf("%d", &x);            // Read next integer
+        scanf("%d", &x);
 
-        if (x % 2 == 0) {          // Even number — extend streak
+        if (x % 2 == 0) {           // Even → extend streak
             current++;
-            if (current > longest)  // Update best if current beats it
+            if (current > longest)  // New best?
                 longest = current;
-        } else {                    // Odd number — reset streak
+        } else {                    // Odd → reset streak
             current = 0;
         }
     }
@@ -1523,75 +2501,95 @@ int main() {
 }
 ```
 
-#### 🔍 Explanation — Line by Line
-| Line | What it does | Why it matters |
-|------|-------------|----------------|
-| `current = 0, longest = 0` | Two trackers initialized | `current` = active streak; `longest` = best streak ever |
-| `scanf("%d", &x)` inside loop | Reads one integer per iteration | All N integers must be read even if odd |
-| `x % 2 == 0` | Checks if x is even | Works for negative even numbers too (`-4 % 2 == 0`) |
-| `current++` | Extends the current even streak | Increments by 1 for each consecutive even |
-| `if (current > longest) longest = current` | Updates best | Only updates when current streak exceeds previous best |
-| `current = 0` in else | Resets streak on odd number | The odd number breaks the consecutive even run |
+#### 🔍 Two Variables Explained
 
-#### 🔍 Dry Run — Input: `7` numbers: `2 4 3 6 8 10 5`
-| i | x | Even? | current | longest |
-|---|---|-------|---------|---------|
-| 0 | 2 | ✅ | 1 | 1 |
-| 1 | 4 | ✅ | 2 | 2 |
-| 2 | 3 | ❌ | 0 | 2 |
-| 3 | 6 | ✅ | 1 | 2 |
-| 4 | 8 | ✅ | 2 | 2 |
-| 5 | 10 | ✅ | 3 | **3** |
-| 6 | 5 | ❌ | 0 | 3 |
+```
+current = "how many evens have I seen IN A ROW right now?"
+longest = "what's the best streak I've seen SO FAR?"
 
-**Output: `3`**
+Every time I see an even:  current goes up. If current > longest, update longest.
+Every time I see an odd:   current resets to 0. (The streak is broken.)
+```
+
+#### 🧪 Dry Run — Input: `7` → `2 4 3 6 8 10 5`
+| x | Even? | current | longest |
+|---|-------|---------|---------|
+| 2 | ✅ | 1 | 1 |
+| 4 | ✅ | 2 | 2 |
+| 3 | ❌ | 0 | 2 |
+| 6 | ✅ | 1 | 2 |
+| 8 | ✅ | 2 | 2 |
+| 10 | ✅ | 3 | **3** |
+| 5 | ❌ | 0 | 3 |
+
+**Output: `3`** ✓
 
 #### ❓ NPTEL MCQ Traps
 
-❓ What is the output if all N numbers are odd?
-✅ `0` — `current` never increments, `longest` stays 0.
-💡 Initial `longest = 0` handles the all-odd case correctly.
+❓ Output if ALL numbers are odd?
+✅ `0` — `current` never increases; `longest` stays at 0.
+💡 Initial `longest = 0` handles this edge case automatically.
 
-❓ What is the output if all N numbers are even?
-✅ N — `current` grows to N, `longest` tracks it.
-💡 No resets happen; streak = full length of input.
+❓ Output if ALL numbers are even?
+✅ N — streak never breaks; `current` grows to N.
+💡 `longest` = N since `current` keeps getting updated.
 
-❓ Why is `longest` updated **inside** the even branch and not after the loop?
-✅ Because we need to update it every time the streak grows — if updated only after the loop, we'd miss streaks that end before the last element.
-💡 Alternatively you could do `longest = (current > longest) ? current : longest` — same effect.
+❓ Why is `longest` updated **inside the even branch** (not after the loop)?
+✅ If the longest streak ends before the last element (like our dry run: last element 5 is odd), the streak is already in `longest` from inside the loop.
+💡 If you only update `longest` after the loop, you'd miss streaks that ended mid-input.
 
-❓ What does `x % 2 == 0` return for `x = -4`?
-✅ `0` (true — `-4 % 2 == 0` in C), so -4 is correctly identified as even.
-💡 The modulo of a negative even number is 0 in C; this works correctly.
+❓ What does `x % 2 == 0` return for a negative even like `x = -4`?
+✅ `0` (true) — `-4 % 2 == 0` in C. Negative even numbers are correctly detected.
+💡 The `%` operator works on negative numbers in C; even negatives give remainder 0.
 
-❓ What if `longest` is updated only when the streak **breaks** (in the else branch)?
-✅ The last streak (if it ends at the last element) would never be recorded.
-💡 That's why the update `if (current > longest) longest = current` must be inside the **even branch**, not the else.
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `longest` updated only in `else` (odd branch) | Misses streaks ending at last element | Update inside the `if (x%2==0)` branch |
+| `current = 1` on reset instead of `current = 0` | Streak is never truly reset | Reset to `0` on odd |
+| `x % 2 == 1` for odd check | Fails for negative odd numbers (`-3 % 2 == -1`) | Use `else` instead |
+| `longest = current` without checking `>` | Overwrites `longest` with smaller value | Only update `if (current > longest)` |
 
-#### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| `longest` updated in `else` only | Streak ending at last element is missed | Update inside even (`if`) branch |
-| Not resetting `current = 0` on odd | Streak carries over past odd numbers | Always reset on odd |
-| `x % 2 == 1` for odd check | Fails for negative odd numbers (`-3 % 2 == -1`) | Use `x % 2 != 0` or just `else` |
-| `longest = current` unconditionally | Overwrites best with smaller value | Only update `if (current > longest)` |
-| Declaring `int i` outside C99 for-loop | Fine in C89; `for (int i=0;...)` requires C99 | Compile with `gcc -std=c99` or declare `i` outside |
-
-#### Quick Recall
-- Two variables: `current` (active streak) + `longest` (best ever)
-- Even → `current++` then check if `current > longest`
-- Odd → `current = 0` (reset)
-- Both initialized to 0 before loop
-- Update `longest` **inside the even branch**, not after the loop
+#### ⚡ Quick Recall
+- `current` = active streak; `longest` = best ever
+- Even → `current++` then `if (current > longest) longest = current`
+- Odd → `current = 0`
+- Both start at 0; update `longest` **inside the even branch**
 
 ---
 
-### Question 3 — Upper Triangular Matrix Check
+### Q3 — Upper Triangular Matrix Check
 
-> **Task:** Read an N×N matrix. Print `1` if it is upper triangular, `0` otherwise.
-> **Definition:** Upper triangular = all elements **below** the main diagonal are 0. Elements on and above the diagonal can be anything.
+**What to do:** Read an N×N matrix. Check if it is **upper triangular** — meaning every number **below the main diagonal is 0**. Print `1` if yes, `0` if no.
 
-#### ✅ Correct Solution (Cleaned)
+```
+Upper triangular — diagonal and above: anything
+                 — below diagonal:      must all be 0
+
+Example (YES — upper triangular):        Example (NO):
+1 1 1 1                                  1 2 3
+0 4 1 1                                  4 5 6   ← 4 is below diagonal
+0 0 0 1                                  7 8 9   ← 7,8 are below diagonal
+0 0 0 1
+
+Output: 1                                Output: 0
+```
+
+#### 🔍 What "Below Diagonal" Means
+
+```
+For a 4×4 matrix (0-indexed rows and columns):
+
+Position (row, col):    Below diagonal when row > col
+(0,0)(0,1)(0,2)(0,3)   → row 0: nothing below diagonal
+(1,0)(1,1)(1,2)(1,3)   → (1,0) is below diagonal [1 > 0]
+(2,0)(2,1)(2,2)(2,3)   → (2,0) and (2,1) are below diagonal
+(3,0)(3,1)(3,2)(3,3)   → (3,0), (3,1), (3,2) are below diagonal
+
+Condition: matrix[i][j] must be 0 for all i > j
+```
+
+#### ✅ Solution
 ```c
 #include <stdio.h>
 
@@ -1599,26 +2597,124 @@ int main() {
     int n;
     scanf("%d", &n);
 
-    int matrix[n][n];   // Variable-length array (C99) — size known at runtime
+    int matrix[n][n];           // Variable-length array (needs C99)
 
-    // Step 1: Read entire matrix
+    // Step 1: Read ALL elements into the matrix
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
-            scanf("%d", &matrix[i][j]);   // Row-by-row input
+            scanf("%d", &matrix[i][j]);
 
-    // Step 2: Check only below-diagonal elements (i > j)
-    for (int i = 1; i < n; i++) {         // Start at row 1 (row 0 has nothing below diagonal)
-        for (int j = 0; j < i; j++) {     // Only columns 0 to i-1 (below diagonal)
+    // Step 2: Check only the below-diagonal elements
+    for (int i = 1; i < n; i++) {       // Start at row 1 (row 0 has nothing below)
+        for (int j = 0; j < i; j++) {   // Only check columns 0 to i-1 (left of diagonal)
             if (matrix[i][j] != 0) {
-                printf("0");              // Found non-zero below diagonal → NOT upper triangular
-                return 0;                // Exit immediately — early termination
+                printf("0");            // Found a non-zero below diagonal
+                return 0;              // Exit immediately — no need to check further
             }
         }
     }
 
-    printf("1");    // All below-diagonal elements are 0 → IS upper triangular
+    printf("1");                        // All below-diagonal elements were 0
     return 0;
 }
 ```
 
-#### 🔍 Visual — What "Below Diagonal" Means (4×4 example)
+#### 🔍 Loop Logic Explained (Step by Step)
+
+```
+Outer loop: i = 1, 2, 3, ..., n-1   (rows — skip row 0, nothing below diagonal there)
+Inner loop: j = 0, 1, ..., i-1      (columns left of the diagonal for this row)
+
+For a 4×4 matrix:
+  i=1: check j=0         → checks matrix[1][0]
+  i=2: check j=0, j=1    → checks matrix[2][0] and matrix[2][1]
+  i=3: check j=0,1,2     → checks matrix[3][0], matrix[3][1], matrix[3][2]
+
+If ANY of these is non-zero → print 0 and stop (not upper triangular)
+If ALL pass → print 1 (is upper triangular)
+```
+
+#### 🧪 Dry Run — The Example Matrix
+```
+1 1 1 1
+0 4 1 1
+0 0 0 1
+0 0 0 1
+```
+| i | j | matrix[i][j] | == 0? |
+|---|---|-------------|-------|
+| 1 | 0 | 0 | ✅ |
+| 2 | 0 | 0 | ✅ |
+| 2 | 1 | 0 | ✅ |
+| 3 | 0 | 0 | ✅ |
+| 3 | 1 | 0 | ✅ |
+| 3 | 2 | 0 | ✅ |
+
+All zero → **Output: `1`** ✓
+
+#### ❓ NPTEL MCQ Traps
+
+❓ Why does the outer loop start at `i = 1` and not `i = 0`?
+✅ Row 0 has no elements below the diagonal — there are no rows above row 0. Starting at 1 avoids an empty inner loop (which would run 0 times anyway, so it's also harmless to start at 0).
+💡 Starting at `i=1` is cleaner and more intentional.
+
+❓ Why is the inner loop `j < i` and not `j < n`?
+✅ We only check below-diagonal elements where column < row. Elements where `j >= i` are on or above the diagonal — they're allowed to be anything.
+💡 `j < i` → only checks `matrix[i][j]` where `row > col` (below diagonal).
+
+❓ What does `return 0` inside the checking loop do?
+✅ Exits the **entire program** immediately after printing `0` — no need to check remaining elements.
+💡 More efficient than using a flag. Always print first, then return.
+
+❓ Is `int matrix[n][n]` valid C?
+✅ Yes — it's a **Variable Length Array (VLA)**, valid in C99 and later. GCC defaults to C99+.
+💡 In old C89/ANSI C, you'd need `malloc`. For NPTEL, VLA is fine.
+
+#### ⚠️ Common Mistakes
+| Mistake | What goes wrong | Fix |
+|---------|----------------|-----|
+| `j <= i` instead of `j < i` | Checks diagonal too (diagonal can be non-zero) | Use `j < i` |
+| Not reading all elements in Step 1 | Some `matrix[i][j]` values are garbage | Always read all n×n elements first |
+| Printing `1` inside the loop | Prints multiple times if many zeros pass | Print `1` only after **both** loops complete |
+| `return 0` without `printf("0")` first | Exits silently with no output | Always `printf` before `return` |
+
+#### ⚡ Quick Recall
+- Upper triangular: `matrix[i][j] == 0` for all `i > j`
+- Read all elements first (Step 1), then check (Step 2)
+- Outer: `i = 1` to `n-1`; Inner: `j = 0` to `i-1` (`j < i`)
+- Early exit: `printf("0"); return 0;` on first violation
+- Print `1` only after both loops finish with no violation
+
+---
+
+### 🗂️ Assignment 2 — Summary Table
+
+| Q | Topic tested | Key concept | Most common mistake |
+|---|-------------|-------------|-------------------|
+| Q1 | `for` loop + modulo | `sum=0`; `i=1`; `i<=n`; even→subtract | Not initializing `sum`; wrong loop bounds |
+| Q2 | Streak tracking | `current`/`longest`; reset on odd; update in even branch | Updating `longest` only after loop |
+| Q3 | 2D array + nested loops | `j < i` (below diagonal); early exit | Checking `j <= i`; not reading all elements |
+
+---
+
+## 🗂️ Combined Assignment Quick Reference
+
+### Format Specifiers Used in Assignments
+| Type | `scanf` | `printf` |
+|------|---------|----------|
+| `int` | `%d` | `%d` |
+| `char` | `%c` | `%c` |
+| `long int` | `%ld` | `%ld` |
+
+### Output Strings — Exact Spelling Required
+| Question | Correct output | Wrong versions |
+|---------|---------------|----------------|
+| Q2 Asgn 1 — eligible | `Eligible` | `eligible`, `ELIGIBLE` ❌ |
+| Q2 Asgn 1 — not eligible | `Not Eligible` | `not eligible`, `Not eligible` ❌ |
+| Q3 Asgn 2 — upper triangular | `1` or `0` | `Yes`/`No`, `true`/`false` ❌ |
+
+### The `&` Rule in `scanf`
+```
+scanf("%d", &age)    ← needs &   (scalar variables)
+scanf("%d", array)   ← no &      (arrays — array name is already an address)
+```
