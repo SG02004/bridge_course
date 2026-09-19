@@ -6,14 +6,14 @@
 ## 📅 Week 6 — 2D Arrays: Basics
 
 ### Concept Summary
-A 2D array (`type name[rows][cols]`) is C's built-in way to store a grid/matrix. Think of it as an array of arrays, laid out **row by row** in memory. You index it as `mat[i][j]` — row first, column second, both 0-based. This is the foundation for every matrix problem (symmetric check, Sudoku, tic-tac-toe) you'll see in assignments.
+A 2D array (`type name[rows][cols]`) is C's built-in way to store a grid or matrix, and it is best understood as an array whose every element is itself an array (a row). You reach a single cell with `mat[i][j]`: `i` picks the row, `j` picks the column, and both start at 0. Because C has to work out where `mat[i][j]` lives in memory, the compiler needs to know how wide a row is. That is why, when you pass a 2D array to a function, the column count must appear in the parameter type, while the row count can be left blank (or passed separately as an `int`). Partial initializers are zero-filled rather than left as garbage, which makes it easy to declare a mostly-empty matrix. Everything later in this week (symmetric check, Sudoku, tic-tac-toe) is just nested loops over this structure, with the outer loop on rows and the inner loop on columns.
 
 ### Key Syntax / Rules Box
 ```c
 double mat[5][6];          // 5 rows, 6 columns
 mat[2][3] = 1.0;           // set row 2, col 3
-scanf("%f", &mat[i][j]);   // reading needs &
-printf("%f", mat[i][j]);   // printing does not
+scanf("%lf", &mat[i][j]);  // reading needs & (and %lf for double)
+printf("%f", mat[i][j]);   // printing does not need &
 
 // Partial initialization -> rest becomes 0
 int a[2][3] = { {1, 2}, {4} };   // a = {{1,2,0},{4,0,0}}
@@ -22,7 +22,7 @@ int a[2][3] = { {1, 2}, {4} };   // a = {{1,2,0},{4,0,0}}
 void fill(double m[][6], int rows) { ... }
 ```
 - ✅ Rule: when passing a 2D array to a function, you **must** give the column count; row count is optional.
-- ✅ `%f` in `scanf` skips all leading whitespace automatically — so extra spaces/newlines in input don't break reading.
+- ✅ `%f`/`%lf`/`%d` in `scanf` skip all leading whitespace automatically — so extra spaces/newlines in input don't break reading.
 - ⚠️ Common mistake: forgetting `&` in `scanf(&mat[i][j])`, or mixing up row/column order.
 - ⚠️ Un-initialized elements in partial initialization become `0`, NOT garbage.
 
@@ -50,15 +50,7 @@ int main() {
 ### What would NPTEL ask about this?
 - ❓ Can you write `void f(double m[3][])`? → ✅ No, compile error → 💡 Rows can be left blank, but **columns can never be omitted** — the compiler needs the column count to compute the address of `m[i][j]`.
 - ❓ What does `int a[2][3] = {{1,2},{4}};` store in `a[1][2]`? → ✅ `0` → 💡 Missing elements in an initializer are zero-filled, row by row.
-- ❓ If you swap `i` and `j` in `scanf("%f", &mat[j][i])` by mistake while looping `i` over rows, `j` over columns — what happens? → ✅ Compiles fine, runs, but transposes your input silently → 💡 No runtime error occurs; this is a logic bug, a favorite NPTEL "spot the mistake" trap.
-
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Omitting column size in function parameter | Compile-time error | `void f(int m[][N], int rows)` |
-| Forgetting `&` in `scanf` for array element | Garbage/crash (undefined behavior) | `scanf("%d", &A[i][j]);` |
-| Assuming uninitialized elements are garbage | Wrong prediction on exam | They are auto-zeroed in partial init |
-| Row/column mixed in nested loop | Silent transpose, wrong output, no error | Keep outer loop = row, inner = column consistently |
+- ❓ If you swap `i` and `j` in `scanf("%lf", &mat[j][i])` by mistake while looping `i` over rows, `j` over columns — what happens? → ✅ Compiles fine, runs, but transposes your input silently → 💡 No runtime error occurs; this is a logic bug, a favorite NPTEL "spot the mistake" trap.
 
 ### Quick Recall
 - 2D array = `type name[rows][cols]`, access via `mat[i][j]`.
@@ -70,7 +62,7 @@ int main() {
 ## 📅 Week 6 — 2D Arrays & Pointers (Row-Major Form)
 
 ### Concept Summary
-Internally, C stores a 2D array as **one long 1D array**, row after row — this is "row-major form." A 3×5 matrix is really 15 contiguous integers in memory. This is *why* the compiler insists on knowing the column count: it needs that number to calculate how many elements to "skip" to jump from one row to the next (`mat + 1` = skip one full row).
+Although we draw a 2D array as a grid, memory is just one long line of cells, so C stores the rows one after another in a single contiguous block. This is called row-major form: a 3×5 matrix is really 15 ints in a row, with row 1 starting right after row 0 ends. Once you see it this way, the column-count rule from the previous section makes sense. To find `mat[i][j]`, the compiler jumps `i` whole rows (each `columns` elements long) and then `j` more elements, so it cannot do the arithmetic without knowing the row width. The same logic explains why `mat + 1` moves to the start of the *next row* rather than the next element: pointer arithmetic always scales by the size of the thing being pointed to, and here that thing is an entire row. Subscripts like `mat[i][j]` are simply shorthand for this pointer arithmetic.
 
 ### Key Syntax / Rules Box
 ```c
@@ -117,13 +109,6 @@ int main() {
 - ❓ Which is correct: `int* mat[5]` or `int (*mat)[5]` for a fixed 2D array with 5 columns? → ✅ `int (*mat)[5]` → 💡 Parentheses force `mat` to be a pointer *first*; without them, `[]` binds first, making `mat` an array of pointers instead.
 - ❓ `mat[0][0]` for `int (*mat)[5]` simplifies to what expression? → ✅ `*(*mat)` → 💡 `*(*(mat+0)+0)` → `*(*mat + 0)` → `*(*mat)`.
 
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Treating `mat+1` as "next element" for a 2D array | Wrong address, wrong element read | Remember it skips a full row (column-count elements) |
-| Confusing `int* mat[5]` with `int (*mat)[5]` | Wrong type passed to function, compiler warning/error | Add parentheses: `(*mat)` for pointer-to-array |
-| Passing `mat + 1` to a function expecting `int*` | Type mismatch — `int(*)[5]` ≠ `int*` | Pass `*(mat+1)` or `mat[1]` instead (decays to `int*`) |
-
 ### Quick Recall
 - C stores 2D arrays in row-major (one long contiguous block).
 - `mat + i` skips `i` full rows, not `i` elements.
@@ -134,7 +119,7 @@ int main() {
 ## 📅 Week 6 — Passing Rows to 1D Functions / 2D Search
 
 ### Concept Summary
-A single row of `int (*mat)[5]` **decays to `int*`** once you dereference it (`*(mat+i)` or `mat[i]`) — so you can feed it directly into any function written for 1D arrays. This is how you build 2D search/processing on top of 1D building blocks, and how you "return" more than one value (row + column) using pointer output-parameters.
+Good code reuses small pieces, and a 2D array is just a stack of 1D arrays, so you can process each row with a function you already wrote for 1D arrays. The catch is types: `mat + i` has type "pointer to a row" (`int (*)[5]`), which is not the same as `int*`, so passing it to a 1D function fails. Dereferencing once (`*(mat + i)`, or equivalently `mat[i]`) gives you the row itself, which decays to a plain `int*` pointing at its first element, and that fits a 1D function perfectly. The second idea here is returning more than one value. A C function can only `return` one thing, so to report both a row and a column you pass in the addresses of two variables and let the function write the results through those pointers. Defaulting those outputs to -1 first gives you a clean "not found" signal.
 
 ### Key Syntax / Rules Box
 ```c
@@ -180,13 +165,6 @@ int main() {
 - ❓ Why pass `int *row, int *col` instead of returning a struct or two ints? → ✅ It's the standard C idiom because a function can only `return` one value directly → 💡 Passing addresses lets the callee modify the caller's variables ("output parameters").
 - ❓ What would happen if `search2D` didn't `return;` after finding a match? → ✅ It would keep looping and overwrite `*row`/`*col` with the **last** match instead of the first → 💡 Classic "missing early exit" bug in MCQ traps.
 
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Passing `mat + i` instead of `mat[i]`/`*(mat+i)` | Type mismatch compile error | Always dereference once when passing a row to a 1D function |
-| Forgetting to initialize `*row`/`*col` to -1 | Garbage value if key not found | Explicitly set defaults before the search loop |
-| Not breaking/returning after first match | Later matches overwrite earlier (correct) result silently | Add `return;` or a `found` flag to stop the loop |
-
 ### Quick Recall
 - `mat[i]` / `*(mat+i)` → decays to `int*`, safe to pass to 1D functions.
 - `mat+i` alone → still `int(*)[N]`, NOT compatible with `int*` parameters.
@@ -197,7 +175,7 @@ int main() {
 ## 📅 Week 6 — Array of Arrays (Ragged Arrays)
 
 ### Concept Summary
-Regular 2D arrays force **every row to be the same length**, wasting memory for uneven data (like strings). An "array of arrays" (`char* strings[N]`) instead stores an array of *pointers*, where each pointer can point to a row of a completely different length — a "ragged array." This is the standard trick for storing lists of strings (e.g. month names).
+A regular 2D array forces every row to be exactly the same length, which is wasteful when your data is uneven, such as a list of names or month titles. If you store them in `char names[12][10]`, short words like "May" still occupy the full 10 columns. The alternative is an array of pointers, `char* names[12]`, where each element is just a pointer and each pointer can aim at a string of any length. This is called a ragged array. Only the array of pointers is guaranteed to be contiguous; the strings they point to can sit anywhere in memory, so you can't do row-skipping pointer arithmetic across them like you can with a true 2D array. The trade-off is flexibility and saved space in exchange for a less regular memory layout. The parsing trick to remember is precedence: `[]` binds tighter than `*`, so `char* strings[7]` reads as "array of 7 pointers to char."
 
 ### Key Syntax / Rules Box
 ```c
@@ -242,13 +220,6 @@ int main() {
 - ❓ What does `**month_names` give you? → ✅ `'J'` (a single `char`) → 💡 One `*` gets you the first string (`char*`), a second `*` gets you its first character.
 - ❓ Why is `char* movies[]` better than `char movies[N][20]` for movie titles of varying length? → ✅ It avoids wasting memory padding short titles to a fixed column width → 💡 Ragged storage: each string uses exactly the memory it needs; only the pointer array itself is fixed-size and contiguous.
 
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Reading `char* strings[7]` as "pointer to array of 7 chars" | Wrong mental model — it's actually 7 separate pointers | Remember `[]` beats `*` in precedence: it's an *array* of pointers |
-| Assuming array-of-arrays rows are contiguous in memory | Wrong pointer arithmetic assumptions between rows | Only the pointer array is contiguous; actual strings can be anywhere |
-| Using `%s` on `month_names[i][j]` (a single char) | Undefined behavior / garbage output | Use `%c` for a single character, `%s` for the whole string (`month_names[i]`) |
-
 ### Quick Recall
 - `char* strings[N]` = array of N pointers → enables ragged (variable-length) rows.
 - Type of the whole thing = `char**`; one `*` → row (`char*`), two `*` → single char.
@@ -259,7 +230,7 @@ int main() {
 ## 📅 Week 6 — File Handling: Basics
 
 ### Concept Summary
-A "file" in an OS isn't just data on disk — it's *any addressable resource* (even `/dev/null`). Every C program automatically has 3 standard streams: `stdin` (fd 0), `stdout` (fd 1), `stderr` (fd 2). Beyond these, C's `stdio.h` gives you `fopen`/`fscanf`/`fprintf`/`fclose` to manually open, read/write, and close **any** file — the same functions you already know (`scanf`, `printf`) but with an explicit `FILE*` target.
+To an operating system, a "file" is any resource you can read from or write to, not just a document on disk. Every C program starts with three of these already open: `stdin` (fd 0), `stdout` (fd 1), and `stderr` (fd 2), which is what `scanf`, `printf`, and error messages use behind the scenes. To work with any other file you use the same idea with an explicit target: `fopen` opens it and gives you a `FILE*` handle, `fscanf`/`fprintf` behave like `scanf`/`printf` but use that handle, and `fclose` releases it. The open mode decides what happens on the way in: `"r"` demands an existing file, `"w"` creates or wipes, and `"a"` creates or appends. `fopen` returns `NULL` when it fails, so you always check it before using the handle, otherwise the next read or write crashes. Shell redirection (`<`, `>`, `2>`) is not part of C at all; the shell simply rewires the three standard streams before your program starts.
 
 ### Key Syntax / Rules Box
 ```c
@@ -304,20 +275,12 @@ int main() {
 
 ### What would NPTEL ask about this?
 - ❓ What does `fopen("x.txt", "r")` return if `x.txt` doesn't exist? → ✅ `NULL` → 💡 Read mode requires the file to already exist; always check before using the pointer.
-- ❓ What's wrong with the `copy_file` loop above at true end-of-file (subtle bug)? → ✅ It can print one extra garbage/duplicate character at EOF → 💡 `feof` only becomes true *after* a failed read attempt, so the loop body executes once more than expected — a classic "off-by-one with feof" trap; better to check `fscanf`'s return value instead.
+- ❓ What's wrong with the `copy_file` loop above at true end-of-file (subtle bug)? → ✅ It can print one extra garbage/duplicate character at EOF → 💡 `feof` only becomes true *after* a failed read attempt, so the loop body executes once more than expected — a classic "off-by-one with feof" trap; better to check `fscanf`'s return value instead (e.g., `while (fscanf(fp,"%c",&c)==1)`).
 - ❓ Which mode wipes existing file content immediately upon opening? → ✅ `"w"` → 💡 `"a"` preserves content and appends; `"r"` doesn't allow writing at all.
-
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Not checking `fopen()`'s return value | Crash (NULL pointer dereference) on later `fscanf`/`fprintf` | Always `if (fp == NULL) { ... }` before using `fp` |
-| Using `"w"` when you meant to preserve old data | Existing file content silently deleted | Use `"a"` to append instead |
-| Relying on `while(!feof(fp))` alone | Off-by-one: last iteration may process garbage/duplicate data | Check the return value of `fscanf`/`fread` instead (e.g., `while (fscanf(fp,"%c",&c)==1)`) |
-| Forgetting `fclose()` | Resource leak, unflushed buffered data may be lost | Always `fclose(fp)` when done |
 
 ### Quick Recall
 - Default streams: `stdin`(0), `stdout`(1), `stderr`(2) — redirection (`<`,`>`,`2>`) is a shell trick, not C.
-- `fopen`/`fscanf`/`fprintf`/`fclose` are the file-analogs of `scanf`/`printf` — always check `fopen` for `NULL`.
+- `fopen`/`fscanf`/`fprintf`/`fclose` are the file-analogs of `scanf`/`printf` — always check `fopen` for `NULL`, and always `fclose` when done.
 - `"r"` needs existing file; `"w"` truncates/creates; `"a"` appends/creates.
 
 ---
@@ -325,7 +288,7 @@ int main() {
 ## 📅 Week 6 — Advanced File Handling
 
 ### Concept Summary
-Beyond basic read/write, C gives finer control: `feof`/`ferror` check a stream's status, `fseek`/`ftell` let you jump to and report arbitrary byte positions (non-sequential access), and the `+` modes (`r+`, `w+`, `a+`) let a single file be both read and written.
+Basic file handling reads a file from start to finish, but real programs often need to jump around or both read and write the same file. C tracks a current position inside every open file, and `fseek` moves that position (from the start, the current spot, or the end) while `ftell` reports it as a byte offset. This gives you non-sequential access without re-reading everything. The `+` modes extend the basic ones so a single handle can do both reading and writing, and they differ only in how the file is treated on open. `r+` keeps the contents and needs the file to exist, `w+` creates the file or wipes it, and `a+` creates or keeps it but forces every write to the end, no matter where you `fseek`. `feof` and `ferror` round things out by letting you check whether a stream hit the end or hit an error.
 
 ### Key Syntax / Rules Box
 ```c
@@ -370,17 +333,9 @@ int main() {
 - ❓ What does `fseek(fp, -10, SEEK_END)` do? → ✅ Positions the pointer 10 bytes before the end of file → 💡 `SEEK_END` measures offset backward (negative) from EOF; a positive offset here would try to go past the file, which is invalid on most systems.
 - ❓ Difference between `r+` and `w+` when the file already has content? → ✅ `r+` keeps existing content; `w+` erases it immediately on open → 💡 `w+` always truncates existing files, `r+` never does (and fails if the file is missing).
 
-### Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|-------------|-----------------|
-| Using `w+` expecting to preserve old data | Existing content wiped instantly on `fopen` | Use `r+` (file must already exist) to preserve data |
-| Expecting `fseek` to control write position in `a+` mode | Data still written at end, confusing bug | Know that `a+` writes always go to EOF, `fseek` only affects reads |
-| Treating `ftell`'s -1L return as a valid position | Silent logic error later in the program | Check `ftell(fp) == -1L` for error before using the value |
-| Using positive offset with `SEEK_END` | Undefined/invalid position beyond file bounds | Use negative offsets with `SEEK_END` |
-
 ### Quick Recall
 - `feof`/`ferror` → check status (0 = fine/not-yet-EOF, non-zero = EOF/error).
-- `fseek(fp, offset, ORIGIN)` with `SEEK_SET`/`SEEK_CUR`/`SEEK_END`; `ftell` reports current position.
+- `fseek(fp, offset, ORIGIN)` with `SEEK_SET`/`SEEK_CUR`/`SEEK_END`; `ftell` reports current position (check for `-1L`).
 - `r+`=must exist, no truncate | `w+`=creates/truncates | `a+`=writes always go to end.
 
 ---
