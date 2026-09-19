@@ -6,7 +6,7 @@
 ## 📌 Topic 1: Structures — Basics (`struct`, `.` operator, nested, init, assign) 📅 Week 7
 
 ### 1. Concept Summary
-A `struct` lets you group variables of *different* types under one name — e.g. an `x` and `y` for a point. Before structs, you'd use two separate variables or a 2-element array, but neither *forces* the link between them. Structs fix that. They behave like first-class types: you can declare, initialize, assign, pass to functions, return from functions, nest them, and make arrays of them.
+Real-world things are rarely a single number. A point on a plane has an `x` and a `y`, a student has a name, a roll number and marks. Before structs, you would keep these in separate variables or squeeze them into an array, but nothing in the language tied those pieces together, and an array can only hold one type anyway. A `struct` fixes this by letting you bundle variables of *different* types under one name, so the compiler treats "a point" or "a rectangle" as a single thing. Structs behave like first-class types: you can declare them, initialize them, assign one to another, pass them to functions, return them from functions, nest one inside another, and build arrays of them. Assignment (`s = r;`) copies every field's value one by one, which is why the two variables are independent afterward. The syntax quirks (the mandatory `;`, the `struct` keyword, initializer order) all follow from the fact that a struct definition is a *type declaration*, not a function body or a variable.
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -90,15 +90,6 @@ int main(void) {
 - ❓ What if you forget the `;` after `struct rect { ... }`? → ✅ Compile-time error → 💡 The closing brace of a struct definition must be followed by a semicolon, unlike a function body.
 - ❓ `struct point p = {1, 2, 3};` — what happens? → ✅ Compile error / warning (excess initializer) → 💡 The struct only has 2 fields (`x`, `y`); you cannot provide more initializer values than fields.
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| `struct point { int x; int y; }` (no `;`) | Compile error | Add `;` after closing brace |
-| `point pt;` (forgetting `struct` keyword) | Compile error — `point` isn't a type name by itself in plain C | `struct point pt;` |
-| `struct point q = {1};` expecting `y=1` | Only `x` gets 1, `y` is implicitly `0` | List all fields, or know remaining ones zero-initialize |
-| Assuming `s = r;` makes `s` and `r` share memory | They are fully independent copies | Use pointers if you actually want shared/aliased data |
-| Initializing nested struct without nested braces: `struct rect r = {0,0,1,1};` | Works in practice (flattened list) but is bad style / can confuse readers, and doesn't work reliably for deeper/irregular nesting | Use `{{0,0},{1,1}}` matching structure shape |
-
 ### 5. Quick Recall
 - `struct` = user-defined type grouping different-typed fields.
 - `.` = access field on a struct *value* (not pointer).
@@ -111,7 +102,7 @@ int main(void) {
 ## 📌 Topic 2: Pointers to Structures & the Arrow Operator (`->`) 📅 Week 7
 
 ### 1. Concept Summary
-Passing a struct **by value** copies every field onto the stack — expensive for big/nested structs. The fix: pass a **pointer** to the struct (just an address, fixed size) instead. To read/write fields through a pointer you must first dereference, then use `.` — but `*p.x` is WRONG due to precedence, so C gives you the cleaner `->` operator: `p->x` ≡ `(*p).x`.
+When you pass a struct to a function by value, C copies every single field onto the function's stack. That is harmless for a tiny `struct point`, but for a large or deeply nested struct it wastes time and memory on every call. The fix is to pass a *pointer* to the struct instead, since an address has a small fixed size no matter how big the struct is. The catch is syntax: to reach a field through a pointer you must dereference first and then use `.`, but the dot operator binds tighter than `*`, so `*p.x` is parsed as `*(p.x)` and fails. You therefore need parentheses, `(*p).x`, and because that is clumsy C provides the arrow `p->x` as exactly equivalent shorthand. One more rule follows from how memory works: if a function returns a pointer to a struct, that struct must live on the heap, because a local struct is destroyed when the function returns.
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -176,15 +167,6 @@ struct Point* getOrigin(void) {
   → ✅ Returns a dangling pointer (undefined behavior) → 💡 `p` is destroyed when the function returns; its stack memory can be reused. Fix: `malloc` a `struct Point` instead.
 - ❓ `pr->x` vs `(*pr).x` — which is more efficient at runtime? → ✅ Identical — same compiled code → 💡 `->` is pure syntactic sugar, not a performance feature.
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| `*pr.x` | Compile error (bad precedence) | `(*pr).x` or `pr->x` |
-| Returning `&localStruct` from a function | Dangling pointer, undefined behavior | `malloc` the struct on the heap and return that pointer |
-| Forgetting to `free()` heap-allocated struct pointers | Memory leak | Always `free()` when done |
-| Using `pr.x` when `pr` is a pointer | Compile error — `.` needs a struct value, not a pointer | Use `pr->x` |
-| Passing large struct by value repeatedly in a loop | Silent performance hit (no error, just slow) | Pass `struct T *` instead |
-
 ### 5. Quick Recall
 - Pass-by-value struct = full copy (slow for big structs); pass-by-pointer = just an address (fast).
 - `.` binds tighter than `*` → always need `(*p).field` or `p->field`.
@@ -196,7 +178,7 @@ struct Point* getOrigin(void) {
 ## 📌 Topic 3: Singly Linked Lists 📅 Week 7
 
 ### 1. Concept Summary
-Arrays have a fixed size and expensive insert/delete (shifting elements). A **linked list** solves this using a **self-referential structure** (`struct node` containing a pointer to another `struct node`), chained together via a `head` pointer, ending in `NULL`. Insertion/deletion at a known point become O(1) pointer updates instead of O(n) shifting — but you lose random access and binary search.
+Arrays are fast to index but rigid: their size is fixed up front, and inserting or deleting in the middle means shifting every element after that point. A linked list drops the idea of contiguous storage. Each element is a separate node holding its data plus a pointer to the next node, and the whole list is reached through a `head` pointer, with `NULL` marking the end. Because a node contains a pointer to its own type, the structure is called self-referential, and the pointer is mandatory: a node that literally contained another node would have infinite size. Insertion and deletion become cheap pointer updates (O(1) once you are at the right spot), but you pay for it by losing random access, so searching is always O(n) and binary search is impossible even on sorted data. Order of operations matters when re-linking: you must connect the new node to the rest of the list *before* overwriting the old link, or the rest of the list is lost.
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -280,15 +262,6 @@ int main(void) {
 - ❓ What does `struct node { int data; struct node next; };` (no `*`) cause? → ✅ Compile error → 💡 Infinite recursive size — the compiler can't determine `sizeof(struct node)` since it contains itself.
 - ❓ Can you binary-search a sorted singly linked list in O(log n)? → ✅ No, still O(n) → 💡 Binary search needs O(1) random access to the "middle" element, which linked lists don't provide — you must traverse node by node to get anywhere.
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| `struct node next;` instead of `struct node *next;` | Compile error: infinite size | Must use a pointer field |
-| Setting `p_current->next = p_new` before `p_new->next = p_current->next` | Rest of the list is lost | Always link the new node to its successor FIRST |
-| Forgetting `new_node->next = NULL` in `make_node` | Garbage/uninitialized `next` → crashes on traversal | Always initialize `next` to `NULL` |
-| Deleting a node without tracking its previous node | Can't re-link the list (no backward pointer) | Track/find `pp_node` (previous) before deleting |
-| Assuming search is O(log n) on "sorted" linked list | Wrong complexity assumption on exam | Linked list search is always O(n) |
-
 ### 5. Quick Recall
 - `next` field **must** be a pointer (self-referential structure).
 - `head == NULL` → empty list; `node->next == NULL` → last node.
@@ -302,7 +275,7 @@ int main(void) {
 ## 📌 Topic 4: Doubly Linked Lists 📅 Week 7
 
 ### 1. Concept Summary
-A singly linked list can only move forward. A **doubly linked list** adds a `previous` pointer to each node, plus the list keeps both `Head` and `Tail` pointers. This makes `insert_before` and `delete_node` (given the node pointer) **O(1)** operations — a big improvement over singly linked lists — at the cost of extra memory per node and slightly trickier bookkeeping.
+A singly linked list only moves forward, which creates an annoying problem: to insert before a node or delete a node, you need its predecessor, and the only way to find it is to walk the list from the head, an O(n) trip. A doubly linked list solves this by giving every node a `previous` pointer as well as a `next` pointer, and by keeping both a `Head` and a `Tail` pointer for the list as a whole. Now, given a pointer to any node, you can reach both neighbours instantly, so `insert_before` and `delete_node` drop to O(1). The price is extra memory per node and more bookkeeping, since every insertion or deletion must fix up pointers in both directions and handle three different situations (head, tail, middle) separately. Note what does *not* improve: finding an unknown value still means checking nodes one at a time, so search stays O(n).
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -365,15 +338,6 @@ int main(void) {
 - ❓ After deleting the tail node, what must be updated? → ✅ `tail = p->previous;` and then `tail->next = NULL;` → 💡 Skipping the second step leaves the new tail's `next` pointing to freed memory (dangling pointer).
 - ❓ Does a doubly linked list improve search time complexity? → ✅ No, still O(n) → 💡 Bidirectional traversal helps *movement*, not *locating* an unknown element — you still must check nodes one by one.
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| Deleting tail but forgetting `tail->next = NULL` | New tail has dangling `next` pointer | Always null out the new boundary pointer |
-| Deleting head but forgetting `head->previous = NULL` | New head has dangling `previous` pointer | Always null out the new boundary pointer |
-| Confusing `extract_node` with `delete_node` | Accidentally `free()`ing a node you meant to reuse | Use `extract_node` when you need the node's data/memory afterward |
-| Assuming DLL search is faster than SLL | Wrong complexity on exam (both O(n)) | Only insert/delete-near-known-node benefit from DLL |
-| Forgetting extra memory cost of `previous` pointer | Underestimating memory usage in a memory-analysis question | DLL nodes use more memory per node than SLL nodes |
-
 ### 5. Quick Recall
 - DLL node = `data + next + previous`; SLL node = `data + next` only.
 - `insert_before` / `delete_node` (node known) = O(1) in DLL vs O(n) in SLL.
@@ -386,7 +350,7 @@ int main(void) {
 ## 📌 Topic 5: Organizing Code into Multiple Files 📅 Week 8
 
 ### 1. Concept Summary
-Real programs are split into `.h` (header — declarations only: prototypes, structs, typedefs) and `.c` files (source — actual implementation). Each `.c` file is compiled separately into a `.o` object file (`gcc -c`), and the linker combines `.o` files into one executable. This enables faster recompilation, information hiding, modularity, and team collaboration.
+Once a program grows past a few hundred lines, keeping everything in one file becomes painful: every small edit forces a full recompile, several people cannot easily work in parallel, and there is no clean boundary between "what this code offers" and "how it does it". C's answer is to split code into header files (`.h`) and source files (`.c`). The header is the *interface*: it holds only declarations such as function prototypes, structs and typedefs. The `.c` file is the *implementation*: the actual function bodies. Each `.c` file is compiled on its own into an object file (`gcc -c`), and the linker then stitches the object files into one executable. This is why changing only `prog.c` means recompiling just `prog.c` and re-linking, while `list.o` is reused. Other files use a module by including its `.h` (never its `.c`), which also hides implementation details, and a module that allocates memory should ship a matching free function so callers don't leak.
 
 ### 2. Key Syntax / Rules Box
 ```bash
@@ -458,15 +422,6 @@ gcc prog.o list.o -o prog
 - ❓ What happens if `prog.c` does `#include "list.c"` instead of `"list.h"`? → ✅ It compiles (copy-paste), but you lose the benefits of separate compilation and may get "multiple definition" linker errors if `list.c` is also compiled and linked separately → 💡 `.c` files contain definitions; including one directly duplicates code across translation units.
 - ❓ `#include <myheader.h>` vs `#include "myheader.h"` for your OWN project header — which is correct convention, and what's the practical risk of using the wrong one? → ✅ Use double quotes `"myheader.h"` → 💡 Angle brackets only search standard system directories, so the compiler may fail to find your custom header (or, worse, silently pick up an unrelated system file of the same name).
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| `#include "list.c"` in `prog.c` | Works but breaks separate compilation; risk of duplicate symbol errors at link time | `#include "list.h"` |
-| Putting executable code / initialized globals in a `.h` file | Gets copy-pasted into every file that includes it → possible duplicate-definition errors | Keep `.h` files to declarations only |
-| Using `<>` for your own project header | Compiler may not find it (searches system paths only) | Use `""` for project-local headers |
-| Forgetting `-c` when you only want to compile (not link) | `gcc` tries to link too and may fail (missing `main`, unresolved refs) | Use `gcc -c file.c` for compile-only |
-| Not providing a "free" function for a library that allocates memory | Memory leaks for users of the library | Provide matching alloc/free pairs (e.g. `makeNode` / `freeNode`) |
-
 ### 5. Quick Recall
 - `.h` = declarations (interface); `.c` = definitions (implementation).
 - `gcc -c file.c` → `file.o` (compile only); `gcc a.o b.o -o out` → link.
@@ -479,7 +434,7 @@ gcc prog.o list.o -o prog
 ## 📌 Topic 6: The C Preprocessor (`#include`, `#define`, `#ifndef` / Include Guards) 📅 Week 8
 
 ### 1. Concept Summary
-Before the compiler ever sees your code, the **preprocessor** runs — a pure text transformer that processes lines starting with `#`. It handles `#include` (paste file contents in), `#define` (symbolic text substitution), and `#ifndef`/`#define`/`#endif` (include guards, to stop a header being processed more than once). It works **sequentially, top to bottom** — a `#define` only affects code that appears *after* it.
+Before the compiler ever looks at your code, a separate tool called the preprocessor runs over it. It knows nothing about C types or syntax; it is a pure text editor that acts on lines beginning with `#`. `#include` pastes the contents of another file at that exact spot, and `#define` sets up a textual replacement (so `BUF_SZ` becomes `1024` everywhere after the definition). Because it works strictly top to bottom, a `#define` only affects the lines that come *after* it. This blind pasting creates a real problem with headers: if the same header reaches a file twice (say directly and through another header), its contents are pasted twice and you get errors like "redefinition of struct node". Include guards (`#ifndef` / `#define` / `#endif`) solve this: the first time the header is seen the guard name is undefined, so the content is kept and the name gets defined; every later time the name is already defined, so the content is skipped. The full pipeline is preprocessor → compiler → linker, and `gcc` runs all three when you type one command.
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -500,7 +455,7 @@ bar = X;
 ```
 - `#define` is a **sequential**, textual substitution — only affects code written AFTER the `#define` line.
 - Include guards use exactly 3 directives: `#ifndef NAME`, `#define NAME`, `#endif`.
-- The FIRST time a header is included, its guard macro is undefined → content is processed AND the macro gets defined. On every SUBSEQENT include (even from a different file, same compilation unit), the guard macro is already defined → content is skipped.
+- The FIRST time a header is included, its guard macro is undefined → content is processed AND the macro gets defined. On every SUBSEQUENT include (even from a different file, same compilation unit), the guard macro is already defined → content is skipped.
 - Compilation pipeline order: **Preprocessor → Compiler (→ assembly → object file) → Linker**.
 - `#include` = literal copy-paste of file contents at that exact line — nothing more, nothing "smart" about types.
 
@@ -540,15 +495,6 @@ int main(void) {
 - ❓ Given `foo = X; #define X 4; bar = X;` — what is the value used for `foo`? → ✅ `X` is undefined at that point → compile error (or, if `X` was previously a variable, it stays as that variable) → 💡 `#define` only affects code appearing *after* it — preprocessing is strictly sequential/top-to-bottom.
 - ❓ Which comes first in the pipeline: preprocessing or compiling to object code? → ✅ Preprocessing → 💡 Order is Preprocessor → Compiler → Linker; `gcc` runs all three silently when you type one command.
 
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| Missing `#endif` for an `#ifndef` guard | Rest of the file (or subsequent files) gets unintentionally skipped/broken | Always pair `#ifndef`/`#define` with a matching `#endif` |
-| Using the same guard macro name in two different headers | Second header's content is wrongly skipped (guard macro name collision) | Use unique guard names, e.g. `LIST_H`, `STACK_H` |
-| Assuming `#define` acts everywhere in the file (not just after) | Wrong expectation about macro effect on earlier code | Remember: sequential, "after this line only" |
-| Putting a semicolon after `#define BUF_SZ 1024;` | The `;` becomes part of the substitution — `malloc(BUF_SZ;)` type bugs | Never add `;` at the end of an object-like `#define` |
-| Thinking `#include` does type-checking of the pasted content | It's a blind text copy-paste — type errors only appear at compile stage | Understand `#include` = textual insertion only |
-
 ### 5. Quick Recall
 - Order: **Preprocessor → Compiler → Linker**.
 - `#include "x.h"` = literal text paste at that line.
@@ -561,7 +507,7 @@ int main(void) {
 ## 📌 Topic 7: Pre & Post Increment Operators, Side Effects, Sequence Points 📅 Week 8
 
 ### 1. Concept Summary
-`++i` (pre-increment) increments **then** uses the new value; `i++` (post-increment) uses the **original** value, then increments (the increment happens by the next "sequence point," e.g. the semicolon). An expression has a **side effect** if it modifies a variable while also producing a value. The C standard's "at most once" rule says a variable's value can be modified **at most once** between two sequence points — violating this gives **unspecified behavior** (exam loves this).
+`++i` and `i++` both add one to `i`, but they differ in the *value the expression produces*. With `++i` the increment happens first and the expression gives you the new value; with `i++` the expression gives you the original value, and the increment is applied as a side effect sometime before the next sequence point (roughly, the end of the full expression). An expression has a side effect when it changes a variable in addition to computing a value, and that is exactly where trouble starts. C only guarantees that side effects are complete at sequence points such as `;`, `&&`, `||`, `?:`, `,` and function-call boundaries, and it does not fix the order in which sub-expressions are evaluated. So if you modify the same variable more than once between two sequence points (`i++ + i++`, or `j = j++`), the standard doesn't say what result you get. NPTEL calls this *unspecified behavior* (the "at most once" rule). The practical habit is simple: one side effect per variable per statement, and split anything trickier into separate statements.
 
 ### 2. Key Syntax / Rules Box
 ```c
@@ -625,15 +571,6 @@ int main(void) {
 - ❓ `int i=5; int j = i++ + ++i;` — what is the value of `j`? → ✅ Unspecified/compiler-dependent (a valid MCQ answer choice is often "cannot be determined" or "undefined/unspecified behavior") → 💡 `i` is modified by both `i++` and `++i` before the next sequence point (the semicolon) — this violates the "at most once" rule.
 - ❓ `int i=1; int j=1; int k = i++ + (i+1);` — is this well-defined? → ✅ No, unspecified → 💡 `i` is both modified (`i++`) and read again in `(i+1)` within the same expression before a sequence point, and the order of evaluation between the two sub-expressions is unspecified.
 - ❓ Simple check: `int i=1; int j = i++;` What are the final values of `i` and `j`? → ✅ `i=2, j=1` → 💡 Post-increment returns the ORIGINAL value; the increment is applied as a side effect that must complete by the next sequence point, but the value used in the expression is the pre-increment value.
-
-### 4. Common Pitfalls Table
-| Mistake | What happens | Correct version |
-|---------|--------------|------------------|
-| `j = i++ + i++;` | Unspecified behavior — `i` modified twice in one expression | Split into two statements, e.g. `j = i++; j += i++;` |
-| `j = j++;` | Unspecified — `j` modified by both `j++` and `=` | Just write `j++;` alone if that's the intent |
-| Confusing `j = ++i` with `j = i++` | Off-by-one style bugs — wrong value assigned to `j` | Pre = new value used; Post = old value used, then incremented |
-| Assuming left-to-right evaluation of function args or `+` operands | Order is actually unspecified by the standard — may vary by compiler | Never rely on evaluation order for correctness |
-| Writing dense one-liners with multiple `++`/`--` on shared variables | Hard to debug, non-portable results | Prioritize clarity: one side effect per variable per statement |
 
 ### 5. Quick Recall
 - `++i`: increment FIRST, then use new value.
