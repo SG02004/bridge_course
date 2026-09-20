@@ -1,8 +1,8 @@
 # 🎯 C Programming — Exam Notes (built from all 64 NPTEL "Introduction to Programming in C" lecture slides)
 
-> **Purpose:** Read this one file and be able to attempt MCQs, fill-in-the-blanks, find-the-error and output-prediction questions. Target: comfortable pass (30/75 and above).
+> **Purpose:** one file to revise from — MCQ, fill-in-the-blank, find-the-error, output-prediction and trace questions.
 >
-> **Source:** every `mooc-*.pptx` in this folder (Lecture Notes) — GCD/Euclid, programming cycle, files & directories, `scanf`, type conversion, blocks/if-else, `while`/`do-while`/`for`, `break`/`continue`, operators & precedence, functions & stack, arrays, pointers, `sizeof`, strings, recursion, multi-dimensional arrays, structures, file handling, preprocessor, linked lists, doubly linked lists.
+> **Source:** all 64 `mooc-*.pptx` decks in this folder (NPTEL "Introduction to Programming in C", IIT Kanpur).
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Time left | Do this |
 |---|---|
-| **6+ hours** | Read §1 → §12 in order, then do §13–§14 question banks. |
-| **3 hours** | Read §1, §3 (types/IO/conversion), §4 (operators), §5–§6 (control/loops), §8–§9 (arrays/pointers), §13–§14. |
-| **1 hour** | Read **§15 (Cheat Sheet)** + **§13 MCQ bank answers** + the ⚠️ boxes in each section. |
-| **15 minutes** | Read only §15 and the "⏱️ Last-minute facts" list at the end. |
+| **6+ hours** | Read 1 → 16 in order, then work through the question banks 17 → 20. |
+| **3 hours** | Read 2 (types/IO), 4 (operators), 5–6 (control flow/loops), 7–7b (functions/pointers), 8–10b (arrays/strings/pointers), then the banks. |
+| **1 hour** | Read **21 (cheat sheet)** + every ⚠️ box + the answer keys of 17–20. |
+| **15 minutes** | Read **21c (last-minute facts)** and the 10-minute self-test at the end. |
 
 ---
 
@@ -21,7 +21,7 @@
 
 | Type | What the paper tests | Your method |
 |---|---|---|
-| **MCQ (concept)** | Definitions, keywords, headers, modes | Recall the tables in §3, §12, §15. |
+| **MCQ (concept)** | Definitions, keywords, headers, modes | Recall the tables in 2 (types/specifiers), 9 (strings), 14 (file modes) and 21 (cheat sheet). |
 | **MCQ (output prediction)** | Precedence, `++`/`--`, integer division, `%`, loop count, `printf` format | Trace **one line at a time** in a table of variable values. Never guess. |
 | **Fill in the blank** | Missing keyword / operator / header / library function | Identify the *category* first (keyword? header? function?), then fill. |
 | **Find the error** | Missing `;`, wrong format specifier, `=` vs `==`, missing `&`, bad pointer, array bounds | Check in this order: `;` → `&` in scanf → `=` vs `==` → `%` specifier → bounds. |
@@ -61,12 +61,9 @@ NPTEL loves questions whose answer is **"undefined behaviour"** or **"the compil
 
 ---
 
-
----
-
 ## Table of Contents
 
-| § | Topic | Where the lectures are |
+| # | Topic | Lecture decks |
 |---|---|---|
 | 1 | Program structure, compilation cycle, files & directories | mooc-03, 04 |
 | 2 | Data types, variables, `char` & ASCII | mooc-05, 06, 20, 21 |
@@ -98,12 +95,12 @@ NPTEL loves questions whose answer is **"undefined behaviour"** or **"the compil
 | **20** | **Output-prediction drill — Set 1 (O1–O30)** | revision |
 | **20b** | **Output-prediction drill — Set 2 (O31–O62)** | revision |
 | **21** | **Cheat sheet — all the tables** | revision |
-| **21b** | **More cheat-sheet tables** (modes, commands, equivalences) | revision |
+| **21b** | **Equivalences & sizes to remember** | revision |
 | **21c** | **Last-minute facts & self-test checklist** | revision |
 
 ---
 
-## §1. Program structure, compilation cycle, files & directories
+## 1. Program structure, compilation cycle, files & directories
 
 ### Concept Summary
 * A **file** is the unit of data in a system — a collection of bytes on secondary storage. A **directory** groups files; the one you work in is the **current working directory**.
@@ -163,13 +160,13 @@ int read_all_lines() {
 int read_next_line() {
     int ch, flag = 0;
     ch = getchar();
-    while (ch != EOF && ch != '\n') { ch = getchar(); flag = 1; }
-    return flag || (ch == '\n');      /* 1 if the line had at least 1 char */
+    while (ch != EOF && ch != '\n') { flag = 1; ch = getchar(); }
+    return flag || (ch == '\n');      /* 1 = a line was consumed (a blank line also counts) */
 }
 int main() { read_all_lines(); }
 ```
 
-### ️ Traps
+### ⚠️ Traps
 * `#include <stdio.h>;` — **no semicolon**. Adding one is a classic "find the error".
 * `main` must be **lower-case**; `Main()` is a different symbol and will not be found by the linker.
 * `gcc -c` **does not** produce an executable — you need the linker.
@@ -182,7 +179,7 @@ int main() { read_all_lines(); }
 
 ---
 
-## §2. Data types, variables, `char` & ASCII
+## 2. Data types, variables, `char` & ASCII
 
 ### Concept Summary
 * A **variable** is "a name for a box". `int a, b, g;` = three integer boxes. Assignment **replaces** whatever was stored.
@@ -253,7 +250,7 @@ scanf("%d", &num[i]);       /* array element — &num[i] means &(num[i]) */
 
 ---
 
-## §3. Type conversion & casting
+## 3. Type conversion & casting
 
 ### Concept Summary
 Two ways to convert a value from one type to another:
@@ -309,7 +306,7 @@ float x = 1.0E50; y = (int) x;   /* -2184748364 — too large, UNDEFINED */
 
 ---
 
-## §4. Operators, expressions, precedence & associativity
+## 4. Operators, expressions, precedence & associativity
 
 ### Concept Summary
 * An **expression** is the basic unit of evaluation and **returns a value of a type**. The RHS of `=` is an expression; so is `(a*a)+(b*b)`, made of sub-expressions `a*a` and `b*b`.
@@ -373,7 +370,7 @@ printf("%d", 10-5-15);   /* ((10-5)-15) = -10 */
 
 ---
 
-## §4b. `%`, `++`/`--`, logical operators, side effects
+## 4b. `%`, `++`/`--`, logical operators, side effects
 
 ### The `%` (remainder) operator
 * For integers `a` and `b`, **`a % b` is the integer remainder** when `a` is divided by `b`. `8 % 3` is **2**.
@@ -458,7 +455,7 @@ a = b + 1;  b = a + 1;  a = f(a, b);      /* now deterministic */
 
 ---
 
-## §5. Conditionals: `if`, `if-else`, comparison operators, `switch`
+## 5. Conditionals: `if`, `if-else`, comparison operators, `switch`
 
 ### Concept Summary
 * Any **non-zero** value is **TRUE**; the value `0` is **FALSE**. There is no separate boolean type used in this course.
@@ -547,7 +544,7 @@ char *suffix(int date) {
 
 ---
 
-## §6. Loops: `while`, `do-while`, `for`, `break`, `continue`
+## 6. Loops: `while`, `do-while`, `for`, `break`, `continue`
 
 ### Concept Summary
 | Loop | Test position | Minimum iterations | Semicolon rule |
@@ -675,7 +672,7 @@ for (i = 0; i < n; i = i + 1)
 ---
 
 
-## §7. Functions — anatomy, calls, scope and the stack
+## 7. Functions — anatomy, calls, scope and the stack
 
 ### Concept Summary
 * A **function** groups a task into a named block that can be called from anywhere. It replaces all statements on a flowchart page.
@@ -750,7 +747,7 @@ main() { int a = 1, b = 2;  a = f(a,b);  printf("%d  %d", a, b); }   /* 3  2 */
 
 ---
 
-## §7b. Functions that change the caller: pointers, designing functions
+## 7b. Functions that change the caller: pointers, designing functions
 
 ### Call by value means changes are lost
 ```c
@@ -843,7 +840,7 @@ main() {
 
 ---
 
-## §8. Arrays
+## 8. Arrays
 
 ### Concept Summary
 * An **array** is a **consecutively allocated group of variables of the same type, whose names are indexed**. Definition:
@@ -914,7 +911,7 @@ void swap(int *ptra, int *ptrb) { int t = *ptra; *ptra = *ptrb; *ptrb = t; }
 ```
 * Note: after the first `a = a + 1`, the parameter `a` no longer points to the base — this is fine here because the caller's array is modified through the pointers.
 
-### ️ Traps
+### ⚠️ Traps
 * `a[n]` (out of bounds) is **undefined** — a classic "what happens?" question.
 * `int num[6] = {7 values}` → **compile error**.
 * `sizeof(a)` on an array gives the **total bytes**, but `sizeof(a)` inside a function that received `int a[]` gives the **pointer size** (8), not the array size. This is a very common MCQ.
@@ -929,7 +926,7 @@ void swap(int *ptra, int *ptrb) { int t = *ptra; *ptra = *ptrb; *ptrb = t; }
 
 ---
 
-## §9. Strings & character arrays
+## 9. Strings & character arrays
 
 ### Concept Summary
 * A **string** is a sequence of characters **terminated by `'\0'`** (the **NULL character**, ASCII 0). The `'\0'` is **not part of the string** — it is the terminator.
@@ -1012,7 +1009,7 @@ int main() { char s[] = "Sample"; char *t = duplicate(s); printf("%s\n", t); }
 
 ---
 
-## §10. Pointers — addresses, dereferencing, arithmetic, `sizeof`
+## 10. Pointers — addresses, dereferencing, arithmetic, `sizeof`
 
 ### Concept Summary
 * A **pointer is a variable that contains the address of another variable**. We say the pointer **"points to"** that variable.
@@ -1078,7 +1075,7 @@ sizeof(array)        /* total bytes: for int num[10] it is 40 == 10*sizeof(int) 
 
 ---
 
-## §10b. Passing arrays & subarrays, the heap (`malloc`/`free`), dangling pointers
+## 10b. Passing arrays & subarrays, the heap (`malloc`/`free`), dangling pointers
 
 ### Passing arrays to functions
 * When you pass an array, what is really copied is the **address of the first element** — so the function can **modify the caller's array**.
@@ -1171,7 +1168,7 @@ int main() { int *p = increment(1); printf("%d\n", *p);  free(p);  p = NULL; }
 
 ---
 
-## §11. Recursion
+## 11. Recursion
 
 ### Concept Summary
 * **Recursion** = a function **calls itself**. Every correct recursive function needs:
@@ -1289,7 +1286,7 @@ int binsearch(int a[], int n, int key) {
 
 ---
 
-## §12. Structures
+## 12. Structures
 
 ### Concept Summary
 * A **structure** is a **collection of variables with a common name**. The variables may be of **different types** (or arrays). The member variables are called **fields** (members).
@@ -1396,7 +1393,7 @@ struct dllist  { Ndptr head; Ndptr last; };
 
 ---
 
-## §13. Multi-dimensional arrays & C type expressions
+## 13. Multi-dimensional arrays & C type expressions
 
 ### Concept Summary
 ```c
@@ -1514,7 +1511,7 @@ printf("%c", **(mnth+7));    /* A       */
 
 ---
 
-## §14. File handling
+## 14. File handling
 
 ### Concept Summary
 * A **file** is a **collection of bytes stored on secondary storage** such as hard disks. Anything addressable in the file system can be a file — including `/dev/null`, `/dev/urandom`, `/dev/audio`.
@@ -1607,7 +1604,7 @@ int main() {
 
 ---
 
-## §15. Preprocessor, multiple source files & makefiles
+## 15. Preprocessor, multiple source files & makefiles
 
 ### The C preprocessor
 * The preprocessor implements a **macro language** that **transforms C programs BEFORE they are compiled**.
@@ -1716,7 +1713,7 @@ clean:
 
 ---
 
-## §16. Linked lists (singly)
+## 16. Linked lists (singly)
 
 ### Concept Summary
 * A **linked list** is a chain of **nodes**, each holding a value and a **pointer to the next node**. The last node's `next` is **`NULL`**; the program keeps a **`head`** pointer to the first node.
@@ -1781,9 +1778,9 @@ void free_list(Nodeptr head) {
 }
 ```
 
-### ️ The four fatal list bugs
+### ⚠️ The four fatal list bugs
 1. **Dereferencing `NULL`** at the end of the list (`while (p->next != NULL)` instead of `while (p != NULL)`).
-2. **Losing the rest of the list** by writing `cur->next = n;` *before* saving `n->next = cur->next;`.
+2. **Losing the rest of the list** by writing `cur->next = n;` **before** copying the old `cur->next` into `n->next`.
 3. **Forgetting the empty-list case** — inserting into an empty list, or deleting from it.
 4. **Using `free(p)` and then reading `p->next`** (and forgetting that a function must take **`struct node **`** to be able to change `head`).
 
@@ -1803,7 +1800,7 @@ A deletion also requires a **pointer to the previous node**, which is exactly th
 |---|---|
 | Find the **next** node | ✔ follow the `next` field |
 | Find the **previous** node | ❌ **cannot** do it |
-| Insert **before** a node |  **cannot** do it |
+| Insert **before** a node | ❌ **cannot** do it |
 | Insert **in front** of the list | ✔ easy — there is a pointer to the head |
 
 > **Principal inadequacy of a singly linked list: navigation is ONE-WAY only** — from a node you can only move forward.
@@ -1822,7 +1819,7 @@ A deletion also requires a **pointer to the previous node**, which is exactly th
 
 ---
 
-## §16b. Doubly linked lists
+## 16b. Doubly linked lists
 
 ### Concept Summary
 * In a **doubly linked list** every node has **three fields**: the **data**, a pointer to the **previous** node, and a pointer to the **next** node.
@@ -1896,18 +1893,18 @@ Dllist simple_concat(Dllist L1, Dllist L2) {     /* re-links; NO copying */
     if (isEmpty(L1)) return L2;
     if (isEmpty(L2)) return L1;
     L2->head->prev = L1->last;
+    L1->last->next = L2->head;    /* use the OLD last node before updating it */
     L1->last       = L2->last;
-    L1->last->next = L2->head;
     return L1;
 }
 
-void delete_node(Dllist L, Ndptr p) {            /* three cases */
+void delete_node(Dllist L, Ndptr p) {            /* head / tail / middle in two steps */
     if (isEmpty(L) || !p) return;
-    if (L->head == p) { L->head = p->next; L->head->prev = NULL; }   /* case 1: head */
-    if (L->last == p) { L->last = p->prev; L->last->next = NULL; }   /* case 2: tail */
-    if (p->next) p->next->prev = p->prev;                            /* case 3: middle */
-    if (p->prev) p->prev->next = p->next;
-    free(p);
+    if (p->prev) p->prev->next = p->next;    /* unlink forward  */
+    else         L->head = p->next;          /* p was the head  */
+    if (p->next) p->next->prev = p->prev;    /* unlink backward */
+    else         L->last = p->prev;          /* p was the tail  */
+    free(p);                                 /* a one-node list ends with head = last = NULL */
 }
 void extract_node(Dllist L, Ndptr p) { /* same code as delete_node, except for free(p) */ }
 ```
@@ -1924,7 +1921,7 @@ void extract_node(Dllist L, Ndptr p) { /* same code as delete_node, except for f
 | Operation | Singly | Doubly |
 |---|---|---|
 | Find next node | ✔ | ✔ |
-| **Find previous node** |  | ✔ (the whole point) |
+| **Find previous node** | ❌ | ✔ (the whole point) |
 | **Insert before a node** | ❌ | ✔ |
 | Delete a node given only that node | ❌ (need the previous node) | ✔ |
 | Memory per node | 1 pointer | 2 pointers |
@@ -1945,7 +1942,7 @@ void extract_node(Dllist L, Ndptr p) { /* same code as delete_node, except for f
 
 ---
 
-## §17. Practice MCQs — Set 1 (with answers and reasoning)
+## 17. Practice MCQs — Set 1 (with answers and reasoning)
 
 > Try to answer before looking at the answer line. These are exactly the style NPTEL uses.
 
@@ -2101,7 +2098,7 @@ printf("%s", str);
 
 ---
 
-## §17b. Practice MCQs — Set 2 (answers and reasoning)
+## 17b. Practice MCQs — Set 2 (answers and reasoning)
 
 **Q31.** `int y = 10000009; printf("%f", (float)y); printf(" %d", y);` prints
 (a) `10000009.000000 10000009`  (b) `10000008.000000 10000009`
@@ -2190,7 +2187,7 @@ printf("%s", str);
 
 ---
 
-## §17c. Practice MCQs — Set 3 (answers and reasoning)
+## 17c. Practice MCQs — Set 3 (answers and reasoning)
 
 **Q51.** For a 2-D array `double mat[5][6]`, which index expression is correct?
 (a) `mat[3][4]`  (b) `mat[3,4]`  (c) `mat(3)(4)`  (d) `mat{3}{4}`
@@ -2319,7 +2316,7 @@ printf("%s", str);
 
 ---
 
-## §18. Fill-in-the-blank bank (with answers)
+## 18. Fill-in-the-blank bank (with answers)
 
 > Cover the Answer column, fill it in, then check. Every item comes from the lecture slides.
 
@@ -2348,7 +2345,7 @@ printf("%s", str);
 | 16 | ASCII code `'0'` is ______; the NULL character `'\0'` is ______. | 48, 0 |
 | 17 | `sizeof(char)` = ______, `sizeof(int)` = ______ (typical). | 1, 4 |
 | 18 | Casting a `float` to an `int` ______ the fractional part. | truncates (discards) |
-| 19 | Converting a value of a larger type into a smaller type is ______. | undefined |
+| 19 | Converting a value of a larger type into a smaller type is called ______. | narrowing — the value is truncated; undefined only if it does not fit |
 | 20 | `printf` returns the number of ______; `scanf` returns the number of ______. | characters printed, items successfully read |
 | 21 | The type of a character constant such as `'A'` is ______. | `char` (an integer type) |
 | 22 | `%d` and `%f` in `scanf` skip leading ______; `%c` does ______. | whitespace, not |
@@ -2403,7 +2400,7 @@ printf("%s", str);
 
 ---
 
-## §18b. Fill-in-the-blank bank — continued
+## 18b. Fill-in-the-blank bank — continued
 
 ### Functions
 | # | Fill in the blank | Answer |
@@ -2455,7 +2452,7 @@ printf("%s", str);
 
 ---
 
-## §18c. Fill-in-the-blank bank — structures, files, preprocessor, lists
+## 18c. Fill-in-the-blank bank — structures, files, preprocessor, lists
 
 | # | Fill in the blank | Answer |
 |---|---|---|
@@ -2492,7 +2489,7 @@ printf("%s", str);
 
 ---
 
-## §19. Find-the-error bank
+## 19. Find-the-error bank
 
 > Each snippet contains exactly one error. Identify it, then read the fix. **Check in this order: `;` → `&` in `scanf` → `=` vs `==` → format specifier → missing braces → bounds → pointer validity.**
 
@@ -2727,7 +2724,7 @@ printf("%d", sizeof(num)/sizeof(int));   /* inside a function with int num[] par
 
 ---
 
-## §20. Output-prediction drill — Set 1 (with answers)
+## 20. Output-prediction drill — Set 1 (with answers)
 
 > Write your trace down before reading the answer. **Wherever you see "undefined", that is a legitimate and frequently correct exam answer.**
 
@@ -2946,7 +2943,7 @@ printf("%d", (1 && 0) + (1 || 0));
 
 ---
 
-## §20b. Output-prediction drill — Set 2 (with answers)
+## 20b. Output-prediction drill — Set 2 (with answers)
 
 **O31.**
 ```c
@@ -3051,16 +3048,20 @@ printf("%d %d", p->x, (*p).y);
 
 **O44.**
 ```c
-struct rect { struct point { int x; int y; } lb, rt; };
+struct point { int x; int y; };
+struct rect { struct point lb, rt; };
+struct rect r;
+r.lb.x = 0;  r.rt.y = 1;
+printf("%d %d", r.lb.x, r.rt.y);
 ```
-→ *(no output)* — but from the slides: with `r.leftbot.x = 0;` and `r.righttop.y = 1;`, printing `r.leftbot.x` gives **0**.
+→ **`0 1`** — the `.` operators chain: `r.lb.x` means `(r.lb).x`.
 
 **O45.**
 ```c
 double mat[4][3] = {{1,2,3},{4,5,6},{7,8,9},{0,1,2}};
-printf("%d", mat[1][2]);
+printf("%f", mat[1][2]);      /* %d would be wrong — the element is a double */
 ```
-→ **6** (row 1, column 2).
+→ **6.000000** (row 1, column 2).
 
 **O46.**
 ```c
@@ -3194,7 +3195,7 @@ printf("%d %c", c, c);
 
 ---
 
-## §21. Cheat sheet — tables you must be able to recall instantly
+## 21. Cheat sheet — tables you must be able to recall instantly
 
 ### A. Format specifiers
 | Specifier | Type | Example output |
@@ -3289,49 +3290,9 @@ continue;                         /* skip to next iteration    */
 
 ---
 
-## §21b. More cheat-sheet tables
+## 21b. Equivalences and sizes to remember
 
-### Data types, sizes and specifiers
-| Type | Size (typical) | `printf` | `scanf` |
-|---|---|---|---|
-| `char` | 1 byte | `%c` | `%c` |
-| `int` | 4 bytes | `%d` | `%d` |
-| `unsigned int` | 4 bytes | `%u` | `%u` |
-| `float` | 4 bytes | `%f` | `%f` |
-| `double` | 8 bytes | `%f` / `%lf` | **`%lf`** |
-| `long int` | 4/8 bytes | `%ld` | `%ld` |
-| pointer | 8 bytes | `%p` / `%lu` | — |
-| string | `len+1` bytes | `%s` | `%s` |
-
-### The four compilation stages
-`source (.c) + headers (.h)` → **preprocessor** (removes comments, handles `#`) → **compiler** → **assembler** (`.o`) → **linker** → **executable (`a.out`)**.
-
-### Compilation commands
-| Command | Result |
-|---|---|
-| `gcc prog.c` | `a.out` |
-| `gcc -o prog prog.c` | executable named `prog` |
-| `gcc -c prog.c` | object file `prog.o` (no linking) |
-| `gcc -o a.out prog.o list.o` | link objects → executable |
-| `gcc file.c -lm` | link the math library |
-| `./a.out` | run |
-
-### File modes
-| Mode | Read | Write | Creates file? | Existing file |
-|---|---|---|---|---|
-| `"r"` | ✔ | ✘ | no | must exist |
-| `"w"` | ✘ | ✔ | yes | **truncated** |
-| `"a"` | ✘ | ✔ (at end) | yes | appended |
-| `"r+"` | ✔ | ✔ | no | must exist |
-| `"w+"` | ✔ | ✔ | yes | truncated |
-| `"a+"` | ✔ | ✔ (always at end) | yes | appended |
-
-### Standard streams
-| Stream | Descriptor | Shell redirection |
-|---|---|---|
-| `stdin` | 0 | `<` |
-| `stdout` | 1 | `>` |
-| `stderr` | 2 | `2>` |
+> Types, sizes and format specifiers are in **section 2**; the compilation stages and `gcc` commands in **section 1**; file modes and standard streams in **section 14** — they are not repeated here.
 
 ### Equivalence table
 | Form A | Form B |
@@ -3351,30 +3312,11 @@ continue;                         /* skip to next iteration    */
 `sizeof(char)=1` · `sizeof(int)=4` · `sizeof(float)=4` · `sizeof(double)=8` · `sizeof(pointer)=8`
 `sizeof(int[10])=40` · `sizeof("hello")=6` · `strlen("hello")=5`
 
-### Complexity / count cheat sheet
-| Task | Cost |
-|---|---|
-| Linear search | n |
-| Binary search | log₂ n |
-| Bubble sort comparisons | n(n-1)/2 |
-| Insert after a node in a linked list | O(1) |
-| Insert in the middle of an array | O(n) (shifting) |
-| Naïve recursive Fibonacci | exponential (≈ Fₙ calls) |
-| Two-way recursion stack depth | ≈ 1 + log₂ n |
-
-### Keywords you have met
-`int` `char` `float` `double` `void` `long` `short` `unsigned` `signed` `const` `static`
-`if` `else` `switch` `case` `default` `break` `continue` `while` `do` `for`
-`return` `sizeof` `struct` `union` `enum` `typedef` `extern` `auto` `register` `goto`
-
-### Not keywords, but important
-`NULL` · `EOF` · `FILE` · `main` · `stdin` · `stdout` · `stderr` · `SEEK_SET` · `SEEK_CUR` · `SEEK_END` · `size_t`
-
 ---
 
-## §21c. Last-minute facts & self-test checklist
+## 21c. Last-minute facts & self-test checklist
 
-## ⓵ Undefined behaviour — answer "cannot be determined"
+### 1. Undefined behaviour — answer "cannot be determined"
 1. `i = i++ + ++i;` (modify twice between sequence points)
 2. `a[i] = i++;`
 3. `printf("%d %d", i++, i++);` (order unspecified)
@@ -3387,7 +3329,7 @@ continue;                         /* skip to next iteration    */
 10. Reading an **uninitialised** variable
 11. `float`-to-`int` when the value is out of range
 
-## ⓶ Statements that are **not** errors but surprise people
+### 2. Statements that are **not** errors but surprise people
 * `if (x = 0)` compiles — it assigns and is false.
 * `while (i < n);` compiles — the body is empty.
 * `for (;;)` is a legal infinite loop.
@@ -3400,7 +3342,7 @@ continue;                         /* skip to next iteration    */
 * `float` printed with `%f` in `printf` is fine.
 * `#define` and `#include` take **no** semicolon.
 
-## ⓷ One-line facts most likely to be asked
+### 3. One-line facts most likely to be asked
 * C is **case-sensitive**; statements end with `;`; `{ }` make a block.
 * `0` is false; **any** non-zero value (including `-1`) is true.
 * Logical operators **short-circuit**; bitwise ones do not.
@@ -3417,7 +3359,7 @@ continue;                         /* skip to next iteration    */
 * Linked lists: one-way navigation; **find-previous** and **insert-before** need a **doubly** linked list.
 * `simple_concat` re-links; `deep_concat` copies.
 
-## ⓸ 10-minute self-test (answers are in §17–§20)
+### 4. 10-minute self-test (answers are in 17–20)
 1. `printf("%d", 7/2);` → ?
 2. `printf("%d", 10-5-15);` → ?
 3. `while` vs `do-while`: which runs at least once?
